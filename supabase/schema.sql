@@ -21,11 +21,22 @@ CREATE INDEX IF NOT EXISTS idx_poems_order_index ON public.poems (order_index AS
 -- 3. Enable Row Level Security (RLS)
 ALTER TABLE public.poems ENABLE ROW LEVEL SECURITY;
 
--- 4. Policies:
+-- 4. Set Base Permissions (Required for PostgREST / Supabase API)
+GRANT SELECT ON public.poems TO anon;
+GRANT ALL ON public.poems TO authenticated;
+
+-- 5. Safely drop existing policies to avoid "already exists" errors if run multiple times
+DROP POLICY IF EXISTS "Public visitors can read poems" ON public.poems;
+DROP POLICY IF EXISTS "Authenticated users can insert poems" ON public.poems;
+DROP POLICY IF EXISTS "Authenticated users can update poems" ON public.poems;
+DROP POLICY IF EXISTS "Authenticated users can delete poems" ON public.poems;
+
+-- 6. Recreate Policies cleanly
 -- Allow anyone (public anon visitors) to read poems
 CREATE POLICY "Public visitors can read poems"
     ON public.poems
     FOR SELECT
+    TO anon, authenticated
     USING (true);
 
 -- Allow authenticated users (admin) to insert poems
@@ -50,7 +61,7 @@ CREATE POLICY "Authenticated users can delete poems"
     TO authenticated
     USING (true);
 
--- 5. Trigger to automatically refresh updated_at timestamp
+-- 7. Trigger to automatically refresh updated_at timestamp
 CREATE OR REPLACE FUNCTION public.handle_updated_at()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -65,7 +76,7 @@ CREATE TRIGGER set_poems_updated_at
     FOR EACH ROW
     EXECUTE FUNCTION public.handle_updated_at();
 
--- 6. Seed starter romantic poems
+-- 8. Seed starter romantic poems
 INSERT INTO public.poems (title, subtitle, body, dedication, poem_date, order_index)
 VALUES
 (
