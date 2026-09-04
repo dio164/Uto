@@ -1,0 +1,117 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-blush: #F8E4EA;
+  --paper-ivory: #FFF9F2;
+  --ink-primary: #392B30;
+  --rose-gold: #B77973;
+  --dusty-rose: #C98598;
+  --burgundy: #743F4D;
+}
+
+@layer base {
+  body {
+    background-color: #F8E4EA;
+    background-image: 
+      radial-gradient(at 15% 15%, rgba(243, 204, 215, 0.5) 0px, transparent 60%),
+      radial-gradient(at 85% 85%, rgba(201, 133, 152, 0.25) 0px, transparent 60%),
+      radial-gradient(at 50% 50%, rgba(255, 249, 242, 0.4) 0px, transparent 70%);
+    background-attachment: fixed;
+    color: #392B30;
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    margin: 0;
+    padding: 0;
+  }
+}
+
+/* Subtle aged paper texture */
+.paper-texture {
+  background-color: #FFF9F2;
+  background-image: 
+    radial-gradient(ellipse at 50% 50%, rgba(255, 255, 255, 0.7) 0%, rgba(250, 243, 232, 0.9) 100%),
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.035'/%3E%3C/svg%3E");
+  box-shadow: inset 0 0 60px rgba(116, 63, 77, 0.04), 0 4px 20px rgba(57, 43, 48, 0.08);
+}
+
+/* Hardcover fabric/leather grain */
+.book-cover-texture {
+  background: linear-gradient(135deg, #B06B7E 0%, #8E4D60 45%, #743F4D 100%);
+  background-image: 
+    linear-gradient(135deg, rgba(222, 158, 176, 0.2) 0%, rgba(116, 63, 77, 0.4) 100%),
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.08'/%3E%3C/svg%3E");
+}
+
+/* Gold & Rose Gold Embossed Foil Text Effect */
+.gold-foil-text {
+  background: linear-gradient(135deg, #FFF1CA 0%, #E2C27F 25%, #C5A059 50%, #EAD49E 75%, #9A7730 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 1px 2px rgba(42, 19, 26, 0.25);
+  filter: drop-shadow(0 1px 1px rgba(255, 255, 255, 0.4));
+}
+
+.rosegold-foil-text {
+  background: linear-gradient(135deg, #FDF0EE 0%, #DE9EB0 30%, #B77973 60%, #935A54 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 1px 2px rgba(116, 63, 77, 0.3));
+}
+
+/* Spine shadow for the center of an opened book spread */
+.book-spine-left {
+  box-shadow: inset -15px 0 20px -10px rgba(57, 43, 48, 0.25);
+}
+
+.book-spine-right {
+  box-shadow: inset 15px 0 20px -10px rgba(57, 43, 48, 0.25);
+}
+
+/* Page edge stacked illusion */
+.page-edge-left {
+  box-shadow: -4px 0 6px -2px rgba(57, 43, 48, 0.15), -8px 0 10px -4px rgba(57, 43, 48, 0.1);
+}
+
+.page-edge-right {
+  box-shadow: 4px 0 6px -2px rgba(57, 43, 48, 0.15), 8px 0 10px -4px rgba(57, 43, 48, 0.1);
+}
+
+/* Custom elegant scrollbar for long poems */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(248, 228, 234, 0.3);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(201, 133, 152, 0.45);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(183, 121, 115, 0.7);
+}
+
+/* StPageFlip styling overrides */
+.stf__parent {
+  margin: 0 auto;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.stf__wrapper {
+  overflow: visible !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.stf__block {
+  width: 100% !important;
+  height: 100% !important;
+  box-shadow: 0 10px 30px rgba(57, 43, 48, 0.2);
+}
