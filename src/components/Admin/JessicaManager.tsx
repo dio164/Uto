@@ -17,11 +17,17 @@ import {
   Feather,
   BookOpen,
   Video,
+  Database,
+  Check,
+  Copy,
+  AlertCircle,
 } from 'lucide-react';
 
 interface JessicaManagerProps {
   timeline: TimelineEntry[];
   appreciations: AppreciationItem[];
+  isDbSynced?: boolean;
+  dbError?: string | null;
   onAddTimeline: (entry: Omit<TimelineEntry, 'id'>) => void;
   onUpdateTimeline: (id: string, entry: Partial<TimelineEntry>) => void;
   onDeleteTimeline: (id: string) => void;
@@ -35,6 +41,8 @@ interface JessicaManagerProps {
 export const JessicaManager: React.FC<JessicaManagerProps> = ({
   timeline,
   appreciations,
+  isDbSynced,
+  dbError,
   onAddTimeline,
   onUpdateTimeline,
   onDeleteTimeline,
@@ -45,6 +53,28 @@ export const JessicaManager: React.FC<JessicaManagerProps> = ({
   onViewJessicaPage,
 }) => {
   const [activeTab, setActiveTab] = useState<'timeline' | 'appreciations'>('timeline');
+  const [copiedSql, setCopiedSql] = useState(false);
+  const [showSqlModal, setShowSqlModal] = useState(false);
+
+  const SQL_MIGRATION = `-- Run this in your Supabase SQL Editor:
+CREATE TABLE IF NOT EXISTS public.jessica_content (
+    id TEXT PRIMARY KEY DEFAULT 'current',
+    timeline JSONB NOT NULL DEFAULT '[]'::jsonb,
+    appreciations JSONB NOT NULL DEFAULT '[]'::jsonb,
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE public.jessica_content ENABLE ROW LEVEL SECURITY;
+GRANT ALL ON public.jessica_content TO anon, authenticated;
+
+CREATE POLICY "Public read jessica_content" ON public.jessica_content FOR SELECT TO anon, authenticated USING (true);
+CREATE POLICY "Public update jessica_content" ON public.jessica_content FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);`;
+
+  const copySqlToClipboard = () => {
+    navigator.clipboard.writeText(SQL_MIGRATION);
+    setCopiedSql(true);
+    setTimeout(() => setCopiedSql(false), 3000);
+  };
 
   // Timeline Modal State
   const [editingTimeline, setEditingTimeline] = useState<TimelineEntry | null>(null);
@@ -181,6 +211,81 @@ export const JessicaManager: React.FC<JessicaManagerProps> = ({
 
   return (
     <div className="space-y-6">
+      {/* Cloud Sync Status Banner */}
+      {isDbSynced ? (
+        <div className="flex items-center justify-between px-4 py-2.5 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 text-xs font-sans">
+          <div className="flex items-center space-x-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <Database className="w-3.5 h-3.5 text-emerald-600" />
+            <span className="font-medium">Synced with Supabase Cloud Database</span>
+            <span className="text-emerald-600 hidden sm:inline">— all changes update instantly on Jessica's device</span>
+          </div>
+        </div>
+      ) : (
+        <div className="p-4 bg-amber-50/90 border border-amber-200/80 rounded-xl text-amber-900 text-xs font-sans flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+          <div className="flex items-start space-x-2.5">
+            <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+            <div>
+              <p className="font-semibold text-amber-900">
+                Cloud Sync Table Needed for Multi-Device Updates
+              </p>
+              <p className="text-amber-700 mt-0.5 leading-relaxed">
+                Changes currently save to your browser's local storage. To have your memories appear on Jessica's phone, run the one-time SQL migration in your Supabase SQL Editor.
+                {dbError && (
+                  <span className="block mt-1 text-[11px] font-mono text-amber-800 bg-amber-100/60 px-2 py-0.5 rounded">
+                    Status: {dbError}
+                  </span>
+                )}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center space-x-2 shrink-0 self-end sm:self-center">
+            <button
+              onClick={copySqlToClipboard}
+              className="flex items-center space-x-1.5 px-3 py-1.5 bg-[#8E4D60] text-white rounded-lg hover:bg-[#743F4D] transition-colors font-medium shadow-xs"
+            >
+              {copiedSql ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+              <span>{copiedSql ? 'Copied SQL!' : 'Copy SQL Script'}</span>
+            </button>
+            <button
+              onClick={() => setShowSqlModal(true)}
+              className="px-2.5 py-1.5 bg-white border border-amber-300 rounded-lg text-amber-800 hover:bg-amber-100 transition-colors"
+            >
+              View SQL
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* SQL Migration Modal */}
+      {showSqlModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs">
+          <div className="paper-texture rounded-2xl max-w-lg w-full p-6 border border-[#DE9EB0] shadow-book-lg">
+            <div className="flex items-center justify-between pb-3 mb-3 border-b border-[#DE9EB0]/40">
+              <h4 className="font-poem text-xl text-[#4D2531]">Supabase SQL Migration</h4>
+              <button onClick={() => setShowSqlModal(false)} className="text-[#8B737C] hover:text-[#4D2531]">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <p className="text-xs text-[#654F57] mb-3">
+              Open your <strong>Supabase Dashboard → SQL Editor</strong>, paste this snippet, and click <strong>Run</strong>:
+            </p>
+            <pre className="p-3 bg-[#1A0E12] text-rose-100 text-[11px] font-mono rounded-lg overflow-x-auto max-h-56">
+              {SQL_MIGRATION}
+            </pre>
+            <div className="mt-4 flex items-center justify-end space-x-2">
+              <button
+                onClick={copySqlToClipboard}
+                className="flex items-center space-x-1 px-4 py-2 bg-[#8E4D60] text-white rounded-lg text-xs font-sans font-medium"
+              >
+                {copiedSql ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                <span>{copiedSql ? 'Copied!' : 'Copy SQL'}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Top Controls: Switch between Timeline & Appreciations + Action Buttons */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#DE9EB0]/30">
         <div className="flex items-center space-x-2 bg-[#FAF0F3] p-1 rounded-xl border border-[#DE9EB0]/40">

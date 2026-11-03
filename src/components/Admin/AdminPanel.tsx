@@ -173,6 +173,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             onUpdateAppreciation={jessicaContent.updateAppreciationItem}
             onDeleteAppreciation={jessicaContent.deleteAppreciationItem}
             onResetDefaults={jessicaContent.resetToDefaults}
+            isDbSynced={jessicaContent.isDbSynced}
+            dbError={jessicaContent.dbError}
             onViewJessicaPage={() => {
               if (onNavigateToJessica) onNavigateToJessica();
               else window.location.href = '/uto';
