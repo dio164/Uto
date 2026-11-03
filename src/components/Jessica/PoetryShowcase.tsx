@@ -13,9 +13,16 @@ export const PoetryShowcase: React.FC<PoetryShowcaseProps> = ({ poems }) => {
   const { poetry } = JESSICA_CONTENT;
   const [selectedIndex, setSelectedIndex] = useState(0);
 
-  // Filter poems according to configured featured titles, or fallback to first 3
+  // Filter poems according to configured featured titles.
+  // If featuredPoemTitles is empty, ALL poems in the collection are shown.
+  // Otherwise only poems whose title (or id) matches an entry in the list are shown.
   const featuredPoems: Poem[] = useMemo(() => {
     if (!poems || poems.length === 0) return [];
+
+    // Empty list = show everything
+    if (!poetry.featuredPoemTitles || poetry.featuredPoemTitles.length === 0) {
+      return poems;
+    }
 
     const matches = poems.filter((poem) =>
       poetry.featuredPoemTitles.some(
@@ -25,8 +32,9 @@ export const PoetryShowcase: React.FC<PoetryShowcaseProps> = ({ poems }) => {
       )
     );
 
-    if (matches.length > 0) return matches;
-    return poems.slice(0, 3);
+    // If none of the featured titles matched (e.g. placeholder titles), show all poems
+    if (matches.length === 0) return poems;
+    return matches;
   }, [poems, poetry.featuredPoemTitles]);
 
   const currentPoem = featuredPoems[selectedIndex] || featuredPoems[0];

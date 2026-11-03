@@ -4,11 +4,14 @@ import { Poem, PoemFormData } from '../../types/poem';
 import { AdminLogin } from './AdminLogin';
 import { PoemList } from './PoemList';
 import { PoemEditor } from './PoemEditor';
-import { BookOpen, LogOut, Sparkles, Feather } from 'lucide-react';
+import { JessicaManager } from './JessicaManager';
+import { useJessicaContent } from '../../hooks/useJessicaContent';
+import { BookOpen, LogOut, Sparkles, Feather, Flower2 } from 'lucide-react';
 
 interface AdminPanelProps {
   poems: Poem[];
   onReturnToJournal: () => void;
+  onNavigateToJessica?: () => void;
   onAddPoem: (data: PoemFormData) => Promise<{ success: boolean; error?: string }>;
   onUpdatePoem: (id: string, data: Partial<PoemFormData>) => Promise<{ success: boolean; error?: string }>;
   onDeletePoem: (id: string) => Promise<{ success: boolean; error?: string }>;
@@ -18,6 +21,7 @@ interface AdminPanelProps {
 export const AdminPanel: React.FC<AdminPanelProps> = ({
   poems,
   onReturnToJournal,
+  onNavigateToJessica,
   onAddPoem,
   onUpdatePoem,
   onDeletePoem,
@@ -27,6 +31,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   const [editingPoem, setEditingPoem] = useState<Poem | null>(null);
   const [isCreatingNew, setIsCreatingNew] = useState<boolean>(false);
   const [checkingAuth, setCheckingAuth] = useState<boolean>(true);
+  const [adminTab, setAdminTab] = useState<'poems' | 'jessica'>('poems');
+
+  // Jessica dynamic content hooks
+  const jessicaContent = useJessicaContent();
 
   // Check auth status on mount
   useEffect(() => {
@@ -88,7 +96,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   return (
     <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8">
       {/* Admin Top Navigation Bar */}
-      <div className="max-w-5xl mx-auto flex items-center justify-between pb-6 mb-8 border-b border-[#DE9EB0]/40">
+      <div className="max-w-5xl mx-auto flex flex-col md:flex-row md:items-center justify-between pb-6 mb-8 border-b border-[#DE9EB0]/40 gap-4">
         <div className="flex items-center space-x-3">
           <div className="w-9 h-9 rounded-full bg-[#FAF0F3] border border-[#DE9EB0]/60 flex items-center justify-center text-[#B77973] shadow-sm">
             <Feather className="w-4 h-4" />
@@ -104,7 +112,35 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
           </div>
         </div>
 
-        <div className="flex items-center space-x-3">
+        {/* Section Navigation Tabs: Poetry Journal vs For Jessica */}
+        <div className="flex items-center space-x-2 bg-[#FAF0F3] p-1 rounded-xl border border-[#DE9EB0]/50 shadow-xs self-start md:self-auto">
+          <button
+            onClick={() => setAdminTab('poems')}
+            className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-xs font-sans tracking-wide transition-all ${
+              adminTab === 'poems'
+                ? 'bg-[#8E4D60] text-[#FFF9F2] shadow-xs font-medium'
+                : 'text-[#743F4D] hover:bg-[#F8E4EA]'
+            }`}
+          >
+            <BookOpen className="w-3.5 h-3.5" />
+            <span>Poetry Journal</span>
+          </button>
+
+          <button
+            onClick={() => setAdminTab('jessica')}
+            className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-xs font-sans tracking-wide transition-all ${
+              adminTab === 'jessica'
+                ? 'bg-[#8E4D60] text-[#FFF9F2] shadow-xs font-medium'
+                : 'text-[#743F4D] hover:bg-[#F8E4EA]'
+            }`}
+          >
+            <Flower2 className="w-3.5 h-3.5" />
+            <span>For Uto</span>
+          </button>
+        </div>
+
+        {/* Right action buttons */}
+        <div className="flex items-center space-x-3 self-end md:self-auto">
           <button
             onClick={onReturnToJournal}
             className="flex items-center space-x-1.5 px-3.5 py-2 rounded-lg paper-texture border border-[#DE9EB0]/60 text-[#743F4D] hover:text-[#4D2531] text-xs font-sans tracking-wide shadow-sm hover:shadow transition-all"
@@ -124,38 +160,59 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         </div>
       </div>
 
-      {/* Editor View vs List View */}
-      {isCreatingNew || editingPoem ? (
-        <PoemEditor
-          poem={editingPoem}
-          defaultOrderIndex={poems.length}
-          onSave={async (formData) => {
-            let res;
-            if (editingPoem) {
-              res = await onUpdatePoem(editingPoem.id, formData);
-            } else {
-              res = await onAddPoem(formData);
-            }
-            if (res.success) {
-              setEditingPoem(null);
-              setIsCreatingNew(false);
-            }
-            return res;
-          }}
-          onCancel={() => {
-            setEditingPoem(null);
-            setIsCreatingNew(false);
-          }}
-        />
-      ) : (
-        <PoemList
-          poems={poems}
-          onNewPoem={() => setIsCreatingNew(true)}
-          onEditPoem={(poem) => setEditingPoem(poem)}
-          onDeletePoem={onDeletePoem}
-          onReorder={onReorderPoems}
-        />
-      )}
+      <div className="max-w-5xl mx-auto">
+        {adminTab === 'jessica' ? (
+          /* JESSICA EXPERIENCE MANAGER */
+          <JessicaManager
+            timeline={jessicaContent.timeline}
+            appreciations={jessicaContent.appreciations}
+            onAddTimeline={jessicaContent.addTimelineEntry}
+            onUpdateTimeline={jessicaContent.updateTimelineEntry}
+            onDeleteTimeline={jessicaContent.deleteTimelineEntry}
+            onAddAppreciation={jessicaContent.addAppreciationItem}
+            onUpdateAppreciation={jessicaContent.updateAppreciationItem}
+            onDeleteAppreciation={jessicaContent.deleteAppreciationItem}
+            onResetDefaults={jessicaContent.resetToDefaults}
+            onViewJessicaPage={() => {
+              if (onNavigateToJessica) onNavigateToJessica();
+              else window.location.href = '/uto';
+            }}
+          />
+        ) : (
+          /* POETRY JOURNAL MANAGER (ORIGINAL) */
+          isCreatingNew || editingPoem ? (
+            <PoemEditor
+              poem={editingPoem}
+              defaultOrderIndex={poems.length}
+              onSave={async (formData) => {
+                let res;
+                if (editingPoem) {
+                  res = await onUpdatePoem(editingPoem.id, formData);
+                } else {
+                  res = await onAddPoem(formData);
+                }
+                if (res.success) {
+                  setEditingPoem(null);
+                  setIsCreatingNew(false);
+                }
+                return res;
+              }}
+              onCancel={() => {
+                setEditingPoem(null);
+                setIsCreatingNew(false);
+              }}
+            />
+          ) : (
+            <PoemList
+              poems={poems}
+              onNewPoem={() => setIsCreatingNew(true)}
+              onEditPoem={(poem) => setEditingPoem(poem)}
+              onDeletePoem={onDeletePoem}
+              onReorder={onReorderPoems}
+            />
+          )
+        )}
+      </div>
     </div>
   );
 };

@@ -14,8 +14,13 @@ const ICON_MAP: Record<string, LucideIcon> = {
   Feather,
 };
 
-export const AppreciationGrid: React.FC = () => {
+interface AppreciationGridProps {
+  items?: AppreciationItem[];
+}
+
+export const AppreciationGrid: React.FC<AppreciationGridProps> = ({ items }) => {
   const { appreciations } = JESSICA_CONTENT;
+  const activeItems = items || appreciations.items;
 
   return (
     <section id="appreciations" className="relative py-20 sm:py-28 px-4 max-w-5xl mx-auto">
@@ -35,7 +40,7 @@ export const AppreciationGrid: React.FC = () => {
 
       {/* Grid of Appreciation Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-        {appreciations.items.map((item: AppreciationItem, index: number) => {
+        {activeItems.map((item: AppreciationItem, index: number) => {
           const IconComponent = item.iconName ? ICON_MAP[item.iconName] || Heart : Heart;
 
           return (

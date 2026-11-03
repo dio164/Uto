@@ -24,13 +24,13 @@ export function App() {
     if (pathname.startsWith('/admin') || hash === '#admin') {
       return '/admin';
     }
-    if (pathname.startsWith('/jessica') || hash === '#jessica') {
-      return '/jessica';
+    if (pathname.startsWith('/uto') || hash === '#uto' || pathname.startsWith('/jessica') || hash === '#jessica') {
+      return '/uto';
     }
     return '/';
   };
 
-  // Simple, robust client-side route tracking (supports /, /admin, and /jessica)
+  // Simple, robust client-side route tracking (supports /, /admin, /uto, and /jessica)
   const [currentPath, setCurrentPath] = useState<string>(getPathFromLocation);
 
   useEffect(() => {
@@ -58,6 +58,7 @@ export function App() {
       <AdminPage
         poems={poems}
         onReturnToJournal={() => navigateTo('/')}
+        onNavigateToJessica={() => navigateTo('/uto')}
         onAddPoem={addPoem}
         onUpdatePoem={updatePoem}
         onDeletePoem={deletePoem}
@@ -66,11 +67,12 @@ export function App() {
     );
   }
 
-  if (currentPath === '/jessica') {
+  if (currentPath === '/uto' || currentPath === '/jessica') {
     return (
       <JessicaPage
         poems={poems}
         onNavigateToHome={() => navigateTo('/')}
+        onNavigateToAdmin={() => navigateTo('/admin')}
       />
     );
   }
@@ -82,6 +84,7 @@ export function App() {
       error={error}
       onRefetch={refetch}
       onNavigateToAdmin={() => navigateTo('/admin')}
+      onNavigateToJessica={() => navigateTo('/uto')}
     />
   );
 }

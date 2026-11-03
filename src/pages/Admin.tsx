@@ -7,6 +7,7 @@ import { AmbientDust } from '../components/Decorative/AmbientDust';
 interface AdminPageProps {
   poems: Poem[];
   onReturnToJournal: () => void;
+  onNavigateToJessica?: () => void;
   onAddPoem: (data: PoemFormData) => Promise<{ success: boolean; error?: string }>;
   onUpdatePoem: (id: string, data: Partial<PoemFormData>) => Promise<{ success: boolean; error?: string }>;
   onDeletePoem: (id: string) => Promise<{ success: boolean; error?: string }>;
@@ -16,6 +17,7 @@ interface AdminPageProps {
 export const AdminPage: React.FC<AdminPageProps> = ({
   poems,
   onReturnToJournal,
+  onNavigateToJessica,
   onAddPoem,
   onUpdatePoem,
   onDeletePoem,
@@ -29,6 +31,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
         <AdminPanel
           poems={poems}
           onReturnToJournal={onReturnToJournal}
+          onNavigateToJessica={onNavigateToJessica}
           onAddPoem={onAddPoem}
           onUpdatePoem={onUpdatePoem}
           onDeletePoem={onDeletePoem}

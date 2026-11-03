@@ -66,7 +66,7 @@ export const WelcomeSection: React.FC<WelcomeSectionProps> = ({ onBeginStory }) 
           <span className="w-6 h-px bg-[#DE9EB0]" />
         </motion.div>
 
-        {/* Main Heading: "For Jessica." */}
+        {/* Main Heading: "For Uto." */}
         <motion.h1
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}

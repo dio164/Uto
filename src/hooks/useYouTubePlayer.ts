@@ -48,7 +48,7 @@ export function useYouTubePlayer(playlistId: string) {
         playerVars: {
           listType: 'playlist',
           list: playlistId,
-          autoplay: 0,
+          autoplay: 1,
           controls: 0,
           disablekb: 1,
           fs: 0,
@@ -60,6 +60,18 @@ export function useYouTubePlayer(playlistId: string) {
             setIsReady(true);
             event.target.setLoop(true);
             setIsLooping(true);
+            if (event.target.setShuffle) event.target.setShuffle(true);
+            // Browser autoplay policy requires starting muted, then unmuting.
+            // This allows music to begin immediately without a user gesture block.
+            event.target.mute();
+            event.target.playVideo();
+            // After a short delay, unmute and restore volume so it plays audibly
+            setTimeout(() => {
+              if (event.target && event.target.unMute) {
+                event.target.unMute();
+                event.target.setVolume(60);
+              }
+            }, 1500);
             updateTitle();
           },
           onStateChange: (event: any) => {

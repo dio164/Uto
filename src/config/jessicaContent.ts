@@ -5,6 +5,8 @@ export interface TimelineEntry {
   description: string;
   image?: string;
   imageCaption?: string;
+  video?: string;
+  videoCaption?: string;
   isMilestone?: boolean;
 }
 
@@ -57,6 +59,9 @@ export interface JessicaContentConfig {
     message: string;
     subtext: string;
   };
+  music: {
+    playlistId: string;
+  };
 }
 
 /**
@@ -70,7 +75,7 @@ export interface JessicaContentConfig {
  */
 export const JESSICA_CONTENT: JessicaContentConfig = {
   welcome: {
-    heading: "For Jessica.",
+    heading: "For Uto.",
     subheading: "A Digital Keepsake",
     supportingText: "A little corner of the internet dedicated to a story I'm grateful to be part of.",
     buttonText: "Begin our little story",
@@ -134,8 +139,8 @@ export const JESSICA_CONTENT: JessicaContentConfig = {
   },
 
   appreciations: {
-    sectionTitle: "Things I Appreciate About You",
-    sectionSubtitle: "The qualities, moments, and grace that make you uniquely Jessica",
+    sectionTitle: "Things I Love About You",
+    sectionSubtitle: "The qualities, moments, and grace that make you uniquely Uto",
     items: [
       {
         id: "appreciation-kindness",
@@ -194,8 +199,12 @@ export const JESSICA_CONTENT: JessicaContentConfig = {
     introText:
       "Uto Omega was built to hold honest thoughts in verse. Of all the words written in this collection, these felt like they belonged to this chapter with you.",
     /**
-     * Add the titles of the poems you want featured in Jessica's experience.
-     * The app will search your active collection and present them with full editorial care.
+     * Control which poems appear in the experience's poetry section.
+     *
+     * - Add a poem's exact title here and it will appear automatically,
+     *   even if you add it to your collection later.
+     * - To show ALL poems from your collection, clear this list: []
+     * - Titles are matched case-insensitively.
      */
     featuredPoemTitles: [
       "I Found Your Name",
@@ -208,7 +217,7 @@ export const JESSICA_CONTENT: JessicaContentConfig = {
     sectionLabel: "An Original Composition",
     title: "November 4",
     date: "November 4, 2026",
-    dedication: "Composed on acoustic guitar — dedicated to Jessica",
+    dedication: "Composed on acoustic guitar — dedicated to Uto",
     description:
       "A piece written and arranged for this specific date. Every progression and melody was shaped with memories of our four months together in mind, meant to be shared with you tonight.",
     performanceNote: "To be performed live for you during our call.",
@@ -219,5 +228,9 @@ export const JESSICA_CONTENT: JessicaContentConfig = {
     message:
       "Some stories are worth taking one step at a time. I'm grateful for the chapters we've shared, and excited about the ones still ahead.",
     subtext: "November 4, 2026 — Four months of our story.",
+  },
+
+  music: {
+    playlistId: "PLCOpQhumGeHc",
   },
 };

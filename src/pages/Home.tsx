@@ -6,7 +6,7 @@ import { Book } from '../components/Book/Book';
 import { FloatingPetals } from '../components/Decorative/FloatingPetals';
 import { AmbientDust } from '../components/Decorative/AmbientDust';
 import { BOOK_CONFIG } from '../config/book';
-import { Feather, RefreshCw, Key } from 'lucide-react';
+import { Feather, RefreshCw, Key, Flower2 } from 'lucide-react';
 import { useSound } from '../hooks/useSound';
 import { useYouTubePlayer } from '../hooks/useYouTubePlayer';
 import { MusicWidget } from '../components/Audio/MusicWidget';
@@ -17,6 +17,7 @@ interface HomeProps {
   error: string | null;
   onRefetch: () => void;
   onNavigateToAdmin: () => void;
+  onNavigateToJessica: () => void;
 }
 
 export const Home: React.FC<HomeProps> = ({
@@ -25,6 +26,7 @@ export const Home: React.FC<HomeProps> = ({
   error,
   onRefetch,
   onNavigateToAdmin,
+  onNavigateToJessica,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [hasOpenedBook, setHasOpenedBook] = useState(false);
@@ -53,7 +55,7 @@ export const Home: React.FC<HomeProps> = ({
       {/* Background Decorative Atmosphere */}
       <FloatingPetals />
       <AmbientDust />
-      
+
       {/* Interactive Music Widget */}
       <MusicWidget
         isVisible={hasOpenedBook}
@@ -143,13 +145,29 @@ export const Home: React.FC<HomeProps> = ({
         </AnimatePresence>
       </main>
 
-      {/* Discreet Footer with Wax Seal & Curator Access */}
+      {/* Discreet Footer with Uto Experience & Curator Access */}
       <footer className="relative z-20 py-4 px-6 flex items-center justify-between text-xs font-poem text-[#8B737C]">
-        <span className="italic tracking-widest text-[#B77973]">
+        {/* Discreet Uto Experience Entry (Bottom Left) */}
+        <button
+          onClick={onNavigateToJessica}
+          title="For Uto"
+          className="group flex items-center space-x-1.5 text-[#AF99A2] hover:text-[#743F4D] transition-colors p-1"
+          aria-label="For Uto"
+        >
+          <div className="w-5 h-5 rounded-full bg-[#FAF0F3] border border-[#DE9EB0]/60 flex items-center justify-center group-hover:border-[#C98598] transition-colors shadow-xs">
+            <Flower2 className="w-2.5 h-2.5 text-[#C98598] group-hover:text-[#743F4D]" />
+          </div>
+          <span className="text-[10px] font-sans uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
+            uto
+          </span>
+        </button>
+
+        {/* Center: Copyright */}
+        <span className="italic tracking-widest text-[#B77973] text-center">
           &copy; {BOOK_CONFIG.year} {BOOK_CONFIG.title}
         </span>
 
-        {/* Discreet Curator / Admin Entry */}
+        {/* Discreet Curator / Admin Entry (Bottom Right) */}
         <button
           onClick={onNavigateToAdmin}
           title="Curator's desk (/admin)"

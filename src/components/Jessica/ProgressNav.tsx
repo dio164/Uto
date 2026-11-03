@@ -9,7 +9,7 @@ interface ProgressNavProps {
 const SECTIONS = [
   { id: 'welcome', label: 'Welcome', icon: Feather },
   { id: 'story', label: 'Our Story', icon: Clock },
-  { id: 'appreciations', label: 'Appreciation', icon: Heart },
+  { id: 'appreciations', label: 'Things I Love', icon: Heart },
   { id: 'poetry', label: 'Poetry', icon: Sparkles },
   { id: 'composition', label: 'Composition', icon: Music },
   { id: 'next-chapter', label: 'Next Chapter', icon: Feather },
