@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { usePoems } from './hooks/usePoems';
 import { Home } from './pages/Home';
 import { AdminPage } from './pages/Admin';
+import { JessicaPage } from './pages/Jessica';
 
 export function App() {
   const {
@@ -15,24 +16,26 @@ export function App() {
     reorderPoems,
   } = usePoems();
 
-  // Simple, robust client-side route tracking (supports /admin and #admin)
-  const [currentPath, setCurrentPath] = useState<string>(() => {
-    if (typeof window !== 'undefined') {
-      if (window.location.pathname.startsWith('/admin') || window.location.hash === '#admin') {
-        return '/admin';
-      }
-      return '/';
+  const getPathFromLocation = (): string => {
+    if (typeof window === 'undefined') return '/';
+    const pathname = window.location.pathname;
+    const hash = window.location.hash;
+
+    if (pathname.startsWith('/admin') || hash === '#admin') {
+      return '/admin';
+    }
+    if (pathname.startsWith('/jessica') || hash === '#jessica') {
+      return '/jessica';
     }
     return '/';
-  });
+  };
+
+  // Simple, robust client-side route tracking (supports /, /admin, and /jessica)
+  const [currentPath, setCurrentPath] = useState<string>(getPathFromLocation);
 
   useEffect(() => {
     const handlePopState = () => {
-      if (window.location.pathname.startsWith('/admin') || window.location.hash === '#admin') {
-        setCurrentPath('/admin');
-      } else {
-        setCurrentPath('/');
-      }
+      setCurrentPath(getPathFromLocation());
     };
 
     window.addEventListener('popstate', handlePopState);
@@ -59,6 +62,15 @@ export function App() {
         onUpdatePoem={updatePoem}
         onDeletePoem={deletePoem}
         onReorderPoems={reorderPoems}
+      />
+    );
+  }
+
+  if (currentPath === '/jessica') {
+    return (
+      <JessicaPage
+        poems={poems}
+        onNavigateToHome={() => navigateTo('/')}
       />
     );
   }
