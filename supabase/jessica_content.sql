@@ -52,3 +52,4 @@ CREATE TRIGGER set_jessica_updated_at
     BEFORE UPDATE ON public.jessica_content
     FOR EACH ROW
     EXECUTE FUNCTION public.handle_jessica_updated_at();
+

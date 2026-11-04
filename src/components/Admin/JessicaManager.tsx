@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { TimelineEntry, AppreciationItem } from '../../config/jessicaContent';
+import { SyncStatus } from '../../hooks/useJessicaContent';
 import {
   Calendar,
   Heart,
@@ -27,6 +28,7 @@ interface JessicaManagerProps {
   timeline: TimelineEntry[];
   appreciations: AppreciationItem[];
   isDbSynced?: boolean;
+  syncStatus?: SyncStatus;
   dbError?: string | null;
   onAddTimeline: (entry: Omit<TimelineEntry, 'id'>) => void;
   onUpdateTimeline: (id: string, entry: Partial<TimelineEntry>) => void;
@@ -42,6 +44,7 @@ export const JessicaManager: React.FC<JessicaManagerProps> = ({
   timeline,
   appreciations,
   isDbSynced,
+  syncStatus,
   dbError,
   onAddTimeline,
   onUpdateTimeline,
@@ -55,6 +58,7 @@ export const JessicaManager: React.FC<JessicaManagerProps> = ({
   const [activeTab, setActiveTab] = useState<'timeline' | 'appreciations'>('timeline');
   const [copiedSql, setCopiedSql] = useState(false);
   const [showSqlModal, setShowSqlModal] = useState(false);
+  const [videoError, setVideoError] = useState<string | null>(null);
 
   const SQL_MIGRATION = `-- Run this in your Supabase SQL Editor:
 CREATE TABLE IF NOT EXISTS public.jessica_content (
@@ -101,7 +105,7 @@ CREATE POLICY "Public update jessica_content" ON public.jessica_content FOR ALL 
   const appFileInputRef = useRef<HTMLInputElement | null>(null);
   const videoInputRef = useRef<HTMLInputElement | null>(null);
 
-  // Helper to handle image file upload and convert to base64
+  // Helper to handle image file upload, compress with canvas, and convert to base64
   const handleImageFileChange = (
     e: React.ChangeEvent<HTMLInputElement>,
     onComplete: (dataUrl: string) => void
@@ -109,7 +113,64 @@ CREATE POLICY "Public update jessica_content" ON public.jessica_content FOR ALL 
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Read file as data URL
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const rawDataUrl = event.target?.result as string;
+      if (!rawDataUrl) return;
+
+      // Compress client-side via canvas to avoid blowing localStorage or Supabase limits
+      const img = new window.Image();
+      img.onload = () => {
+        const maxDim = 1400;
+        let { width, height } = img;
+        if (width > maxDim || height > maxDim) {
+          if (width > height) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          } else {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          const compressed = canvas.toDataURL('image/jpeg', 0.82);
+          onComplete(compressed);
+        } else {
+          onComplete(rawDataUrl);
+        }
+      };
+      img.onerror = () => onComplete(rawDataUrl);
+      img.src = rawDataUrl;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Helper to handle video file upload with size guard
+  const handleVideoFileChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    onComplete: (dataUrl: string) => void
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setVideoError(null);
+
+    // Guard size: 6MB max for base64 storage in database
+    const maxSizeBytes = 6 * 1024 * 1024;
+    if (file.size > maxSizeBytes) {
+      const sizeMB = (file.size / (1024 * 1024)).toFixed(1);
+      setVideoError(
+        `This video is ${sizeMB}MB. For seamless cloud sync and mobile playback, video file uploads should be under 6MB. For longer videos, please paste a direct video link instead.`
+      );
+      if (videoInputRef.current) videoInputRef.current.value = '';
+      return;
+    }
+
     const reader = new FileReader();
     reader.onload = (event) => {
       const result = event.target?.result as string;
@@ -122,6 +183,7 @@ CREATE POLICY "Public update jessica_content" ON public.jessica_content FOR ALL 
 
   const openNewTimeline = () => {
     setEditingTimeline(null);
+    setVideoError(null);
     setTDate('');
     setTTitle('');
     setTDesc('');
@@ -135,6 +197,7 @@ CREATE POLICY "Public update jessica_content" ON public.jessica_content FOR ALL 
 
   const openEditTimeline = (item: TimelineEntry) => {
     setEditingTimeline(item);
+    setVideoError(null);
     setTDate(item.date);
     setTTitle(item.title);
     setTDesc(item.description);
@@ -212,7 +275,7 @@ CREATE POLICY "Public update jessica_content" ON public.jessica_content FOR ALL 
   return (
     <div className="space-y-6">
       {/* Cloud Sync Status Banner */}
-      {isDbSynced ? (
+      {syncStatus === 'synced' || isDbSynced ? (
         <div className="flex items-center justify-between px-4 py-2.5 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 text-xs font-sans">
           <div className="flex items-center space-x-2">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
@@ -221,16 +284,16 @@ CREATE POLICY "Public update jessica_content" ON public.jessica_content FOR ALL 
             <span className="text-emerald-600 hidden sm:inline">— all changes update instantly on Jessica's device</span>
           </div>
         </div>
-      ) : (
+      ) : syncStatus === 'table_missing' ? (
         <div className="p-4 bg-amber-50/90 border border-amber-200/80 rounded-xl text-amber-900 text-xs font-sans flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
           <div className="flex items-start space-x-2.5">
             <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
             <div>
               <p className="font-semibold text-amber-900">
-                Cloud Sync Table Needed for Multi-Device Updates
+                Cloud Sync Table Needed in Supabase
               </p>
               <p className="text-amber-700 mt-0.5 leading-relaxed">
-                Changes currently save to your browser's local storage. To have your memories appear on Jessica's phone, run the one-time SQL migration in your Supabase SQL Editor.
+                To sync your memories to Jessica's phone, run the one-time SQL script in your Supabase SQL Editor.
                 {dbError && (
                   <span className="block mt-1 text-[11px] font-mono text-amber-800 bg-amber-100/60 px-2 py-0.5 rounded">
                     Status: {dbError}
@@ -255,7 +318,17 @@ CREATE POLICY "Public update jessica_content" ON public.jessica_content FOR ALL 
             </button>
           </div>
         </div>
-      )}
+      ) : syncStatus === 'error' ? (
+        <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-xl text-rose-900 text-xs font-sans flex items-start space-x-2.5">
+          <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+          <div>
+            <p className="font-semibold text-rose-900">Cloud Sync Warning</p>
+            <p className="text-rose-700 mt-0.5 leading-relaxed">
+              {dbError || 'Could not save some media to the cloud database.'} If you uploaded a large video or photo file, please try a video under 6MB or paste a direct video link.
+            </p>
+          </div>
+        </div>
+      ) : null}
 
       {/* SQL Migration Modal */}
       {showSqlModal && (
@@ -687,8 +760,13 @@ CREATE POLICY "Public update jessica_content" ON public.jessica_content FOR ALL 
                       type="file"
                       accept="video/*"
                       className="hidden"
-                      onChange={(e) => handleImageFileChange(e, (dataUrl) => setTVideo(dataUrl))}
+                      onChange={(e) => handleVideoFileChange(e, (dataUrl) => setTVideo(dataUrl))}
                     />
+                    {videoError && (
+                      <p className="text-xs text-red-700 bg-red-50/90 border border-red-200 p-2.5 rounded-lg font-sans">
+                        {videoError}
+                      </p>
+                    )}
                     {/* Or URL */}
                     <div className="flex items-center space-x-2">
                       <span className="text-[10px] font-sans text-[#AF99A2] uppercase tracking-wider">or link:</span>

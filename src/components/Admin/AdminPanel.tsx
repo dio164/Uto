@@ -174,6 +174,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             onDeleteAppreciation={jessicaContent.deleteAppreciationItem}
             onResetDefaults={jessicaContent.resetToDefaults}
             isDbSynced={jessicaContent.isDbSynced}
+            syncStatus={jessicaContent.syncStatus}
             dbError={jessicaContent.dbError}
             onViewJessicaPage={() => {
               if (onNavigateToJessica) onNavigateToJessica();

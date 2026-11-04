@@ -9,6 +9,8 @@ interface StoredJessicaContent {
   appreciations: AppreciationItem[];
 }
 
+export type SyncStatus = 'checking' | 'synced' | 'table_missing' | 'error';
+
 export function useJessicaContent() {
   const [timeline, setTimeline] = useState<TimelineEntry[]>(() => {
     try {
@@ -40,12 +42,15 @@ export function useJessicaContent() {
     return JESSICA_CONTENT.appreciations.items;
   });
 
-  const [isDbSynced, setIsDbSynced] = useState<boolean>(false);
+  const [syncStatus, setSyncStatus] = useState<SyncStatus>(isSupabaseConfigured ? 'checking' : 'synced');
   const [dbError, setDbError] = useState<string | null>(null);
 
   // Fetch cloud content from Supabase on mount
   useEffect(() => {
-    if (!isSupabaseConfigured) return;
+    if (!isSupabaseConfigured) {
+      setSyncStatus('synced');
+      return;
+    }
 
     let isMounted = true;
 
@@ -61,7 +66,12 @@ export function useJessicaContent() {
           console.warn('[Supabase] Could not fetch jessica_content:', error.message);
           if (isMounted) {
             setDbError(error.message);
-            setIsDbSynced(false);
+            // If table does not exist, code is PGRST205 or message contains relation
+            if (error.code === 'PGRST205' || error.message?.toLowerCase().includes('relation') || error.message?.toLowerCase().includes('table')) {
+              setSyncStatus('table_missing');
+            } else {
+              setSyncStatus('error');
+            }
           }
           return;
         }
@@ -93,16 +103,18 @@ export function useJessicaContent() {
             }
           }
 
-          setIsDbSynced(true);
+          setSyncStatus('synced');
           setDbError(null);
         } else if (isMounted) {
           // Table exists but no row yet
-          setIsDbSynced(true);
+          setSyncStatus('synced');
+          setDbError(null);
         }
       } catch (err) {
         console.warn('[Supabase] Exception checking jessica_content:', err);
         if (isMounted) {
-          setIsDbSynced(false);
+          setSyncStatus('error');
+          setDbError('Connection error checking database.');
         }
       }
     };
@@ -117,7 +129,7 @@ export function useJessicaContent() {
   // Save changes both to localStorage and Supabase
   const persistContent = useCallback(
     async (newTimeline: TimelineEntry[], newAppreciations: AppreciationItem[]) => {
-      // 1. Immediately cache in localStorage for fast offline rendering
+      // 1. Immediately cache in localStorage for fast offline rendering (safely catch quota errors)
       try {
         const payload: StoredJessicaContent = {
           timeline: newTimeline,
@@ -125,7 +137,7 @@ export function useJessicaContent() {
         };
         localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
       } catch (err) {
-        console.error('Failed to save to localStorage', err);
+        console.warn('LocalStorage quota reached (media stored in database directly)', err);
       }
 
       // 2. Persist to Supabase if available
@@ -144,14 +156,19 @@ export function useJessicaContent() {
           if (error) {
             console.error('[Supabase] Failed to save jessica_content:', error.message);
             setDbError(error.message);
-            setIsDbSynced(false);
+            if (error.code === 'PGRST205' || error.message?.toLowerCase().includes('relation') || error.message?.toLowerCase().includes('table')) {
+              setSyncStatus('table_missing');
+            } else {
+              setSyncStatus('error');
+            }
           } else {
-            setIsDbSynced(true);
+            setSyncStatus('synced');
             setDbError(null);
           }
         } catch (err) {
           console.error('[Supabase] Exception saving jessica_content:', err);
-          setIsDbSynced(false);
+          setSyncStatus('error');
+          setDbError('Upload failed. Please ensure file sizes are reasonable.');
         }
       }
     },
@@ -253,7 +270,8 @@ export function useJessicaContent() {
   return {
     timeline,
     appreciations,
-    isDbSynced,
+    syncStatus,
+    isDbSynced: syncStatus === 'synced',
     dbError,
     addTimelineEntry,
     updateTimelineEntry,
