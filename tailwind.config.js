@@ -43,6 +43,15 @@ export default {
           light: '#E2C27F',
           dark: '#9A7730',
           foil: '#D4AF37',
+        },
+        princess: {
+          baby: '#FCE7F3',
+          powder: '#FDF2F8',
+          cotton: '#FBCFE8',
+          rose: '#F472B6',
+          lavender: '#E9D5FF',
+          plum: '#1F0B18',
+          twilight: '#2E1124',
         }
       },
       fontFamily: {

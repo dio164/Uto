@@ -5,6 +5,7 @@ import { AdminLogin } from './AdminLogin';
 import { PoemList } from './PoemList';
 import { PoemEditor } from './PoemEditor';
 import { JessicaManager } from './JessicaManager';
+import { UniverseManager } from './UniverseManager';
 import { useJessicaContent } from '../../hooks/useJessicaContent';
 import { BookOpen, LogOut, Sparkles, Feather, Flower2 } from 'lucide-react';
 
@@ -31,7 +32,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   const [editingPoem, setEditingPoem] = useState<Poem | null>(null);
   const [isCreatingNew, setIsCreatingNew] = useState<boolean>(false);
   const [checkingAuth, setCheckingAuth] = useState<boolean>(true);
-  const [adminTab, setAdminTab] = useState<'poems' | 'jessica'>('poems');
+  const [adminTab, setAdminTab] = useState<'poems' | 'jessica' | 'universe'>('poems');
 
   // Jessica dynamic content hooks
   const jessicaContent = useJessicaContent();
@@ -137,6 +138,18 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             <Flower2 className="w-3.5 h-3.5" />
             <span>For Uto</span>
           </button>
+
+          <button
+            onClick={() => setAdminTab('universe')}
+            className={`flex items-center space-x-2 px-3.5 py-1.5 rounded-lg text-xs font-sans tracking-wide transition-all ${
+              adminTab === 'universe'
+                ? 'bg-[#8E4D60] text-[#FFF9F2] shadow-xs font-medium'
+                : 'text-[#743F4D] hover:bg-[#F8E4EA]'
+            }`}
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>Universe Studio</span>
+          </button>
         </div>
 
         {/* Right action buttons */}
@@ -161,7 +174,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       </div>
 
       <div className="max-w-5xl mx-auto">
-        {adminTab === 'jessica' ? (
+        {adminTab === 'universe' ? (
+          /* PLANET UTO UNIVERSE STUDIO */
+          <UniverseManager />
+        ) : adminTab === 'jessica' ? (
           /* JESSICA EXPERIENCE MANAGER */
           <JessicaManager
             timeline={jessicaContent.timeline}
