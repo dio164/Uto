@@ -155,10 +155,10 @@ export const ObservatoryPage: React.FC<ObservatoryPageProps> = ({ onNavigateBack
             </div>
             <div className="text-center flex-1">
               <div className="text-3xl mb-1">🇷🇴</div>
-              <div className="text-white font-serif text-sm">Bucharest, Romania</div>
+              <div className="text-white font-serif text-sm">Iași, Romania</div>
               <div className="flex items-center justify-center space-x-1 mt-1">
                 <MapPin className="w-3 h-3 text-blue-300" />
-                <span className="text-blue-300 text-xs">44.4268° N</span>
+                <span className="text-blue-300 text-xs">47.1585° N</span>
               </div>
             </div>
           </div>

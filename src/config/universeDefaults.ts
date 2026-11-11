@@ -98,7 +98,7 @@ export const DEFAULT_DATES: ImportantDateItem[] = [
     target_date: '2027-06-20T10:00:00Z',
     category: 'Graduation',
     description: 'Celebrating Dr. Jessica — the culmination of countless hours of sacrifice and study.',
-    country_connection: 'Bucharest, Romania',
+    country_connection: 'Iași, Romania',
     is_highlighted: true,
   },
   {
@@ -204,10 +204,10 @@ export const DEFAULT_LITTLE_THINGS: LittleThingItem[] = [
 export const DEFAULT_FUTURE_MUSEUM: FutureMuseumItem[] = [
   {
     id: 'fm-1',
-    title: 'An Evening Walk in Old Town Bucharest',
+    title: 'An Evening Walk in Copou, Iași',
     category: 'Places to Visit',
     status: 'planned',
-    target_location: 'Bucharest, Romania',
+    target_location: 'Iași, Romania',
     notes: 'Coffee, cobblestone alleys, your hand in mine, and no airports left between us.',
   },
   {

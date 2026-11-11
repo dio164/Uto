@@ -34,10 +34,23 @@ function getLocalOrFallback<T>(key: string, fallback: T[]): T[] {
     const raw = localStorage.getItem(key);
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        // Automatically sanitize any legacy Bucharest entries to Iași
+        const sanitized = parsed.map((item: unknown) => {
+          if (typeof item === 'object' && item !== null) {
+            let itemStr = JSON.stringify(item);
+            if (itemStr.includes('Bucharest')) {
+              itemStr = itemStr.replace(/Bucharest/g, 'Iași');
+              return JSON.parse(itemStr);
+            }
+          }
+          return item as T;
+        });
+        return sanitized;
+      }
     }
-  } catch {
-    // ignore
+  } catch (e) {
+    void e;
   }
   return fallback;
 }

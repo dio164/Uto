@@ -23,6 +23,7 @@ import {
   Copy,
   AlertCircle,
 } from 'lucide-react';
+import { UniversalVideo, UniversalVideoThumbnail } from '../Common/UniversalVideo';
 
 interface JessicaManagerProps {
   timeline: TimelineEntry[];
@@ -459,7 +460,7 @@ CREATE POLICY "Public update jessica_content" ON public.jessica_content FOR ALL 
                     </div>
                   ) : entry.video ? (
                     <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden border border-[#DE9EB0]/50 shrink-0 bg-[#1A0E12] relative flex items-center justify-center">
-                      <video src={entry.video} className="w-full h-full object-cover" muted playsInline preload="metadata" />
+                      <UniversalVideoThumbnail src={entry.video} className="w-full h-full object-cover" />
                       <div className="absolute inset-0 flex items-center justify-center bg-black/30">
                         <Video className="w-5 h-5 text-white/80" />
                       </div>
@@ -734,11 +735,13 @@ CREATE POLICY "Public update jessica_content" ON public.jessica_content FOR ALL 
 
                 {tVideo ? (
                   <div className="relative w-full rounded-xl overflow-hidden border border-[#DE9EB0]/60 mb-2 bg-[#1A0E12]">
-                    <video src={tVideo} className="w-full h-40 object-cover" muted playsInline preload="metadata" />
+                    <div className="w-full h-44 bg-black">
+                      <UniversalVideo src={tVideo} className="w-full h-44" controls={true} />
+                    </div>
                     <button
                       type="button"
                       onClick={() => { setTVideo(undefined); setTVideoCaption(''); }}
-                      className="absolute top-2 right-2 p-1.5 rounded-full bg-red-600 text-white shadow-md hover:bg-red-700 transition-colors"
+                      className="absolute top-2 right-2 p-1.5 rounded-full bg-red-600 text-white shadow-md hover:bg-red-700 transition-colors z-10"
                       title="Remove video"
                     >
                       <X className="w-3.5 h-3.5" />
@@ -774,10 +777,13 @@ CREATE POLICY "Public update jessica_content" ON public.jessica_content FOR ALL 
                         type="text"
                         value={tVideo || ''}
                         onChange={(e) => setTVideo(e.target.value.trim() || undefined)}
-                        placeholder="https://example.com/video.mp4"
+                        placeholder="Google Drive link, YouTube, or direct video URL"
                         className="flex-1 px-2.5 py-1.5 text-xs bg-[#FAF0F3]/60 border border-[#DE9EB0]/50 rounded-lg text-[#392B30] outline-none"
                       />
                     </div>
+                    <p className="text-[11px] text-[#8B737C] font-sans">
+                      💡 Tip: Google Drive sharing links (set to "Anyone with the link can view") and YouTube links work seamlessly!
+                    </p>
                   </div>
                 )}
 

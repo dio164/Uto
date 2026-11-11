@@ -33,6 +33,7 @@ import {
   Volume2,
   AlertCircle,
 } from 'lucide-react';
+import { UniversalVideo } from '../Common/UniversalVideo';
 
 export const UniverseManager: React.FC = () => {
   const {
@@ -451,7 +452,7 @@ CREATE POLICY "Public storage modify" ON storage.objects FOR ALL TO anon, authen
                 </div>
                 {dateItem.description && <p className="text-xs text-[#4D2531]/70 font-serif italic">{dateItem.description}</p>}
                 <div className="flex items-center justify-between text-[11px] text-[#4D2531]/60 pt-1 border-t border-[#F8D7E3]/40">
-                  <span>{dateItem.country_connection || 'Lagos ↔ Bucharest'}</span>
+                  <span>{dateItem.country_connection || 'Lagos ↔ Iași'}</span>
                   <span className="px-2 py-0.5 rounded-full bg-[#FAD4E0]/60 text-[#4D2531] text-[10px]">{dateItem.category}</span>
                 </div>
               </div>
@@ -831,7 +832,7 @@ CREATE POLICY "Public storage modify" ON storage.objects FOR ALL TO anon, authen
             </div>
             <div>
               <label className="block text-xs font-medium text-[#4D2531] mb-1">Connection / Location</label>
-              <input type="text" value={editingDate.country_connection || ''} onChange={(e) => setEditingDate({ ...editingDate, country_connection: e.target.value })} placeholder="Lagos, Nigeria ↔ Bucharest, Romania" className="w-full px-3 py-2 rounded-xl border border-[#F8D7E3]/80 text-sm focus:outline-hidden focus:border-[#D4607A]" />
+              <input type="text" value={editingDate.country_connection || ''} onChange={(e) => setEditingDate({ ...editingDate, country_connection: e.target.value })} placeholder="Lagos, Nigeria ↔ Iași, Romania" className="w-full px-3 py-2 rounded-xl border border-[#F8D7E3]/80 text-sm focus:outline-hidden focus:border-[#D4607A]" />
             </div>
             <div>
               <label className="block text-xs font-medium text-[#4D2531] mb-1">Description</label>
@@ -965,10 +966,36 @@ CREATE POLICY "Public storage modify" ON storage.objects FOR ALL TO anon, authen
                     type="text"
                     value={editingCinema.media_url || ''}
                     onChange={(e) => setEditingCinema({ ...editingCinema, media_url: e.target.value })}
-                    placeholder="https://... direct link or data:image..."
+                    placeholder="Google Drive link, YouTube, or direct video/photo link"
                     className="w-full px-3 py-2 rounded-xl border border-[#F8D7E3]/80 text-xs focus:outline-hidden focus:border-[#D4607A]"
                   />
+                  <p className="text-[11px] text-[#8B737C] mt-1">
+                    💡 Tip: Google Drive links (set to "Anyone with the link can view") and YouTube work seamlessly!
+                  </p>
                 </div>
+
+                {/* Instant Media Preview */}
+                {editingCinema.media_url && (
+                  <div className="p-2.5 bg-[#FAF0F3] rounded-xl border border-[#F8D7E3] space-y-1.5 mt-2">
+                    <div className="flex items-center justify-between text-[11px] text-[#4D2531]">
+                      <span className="font-medium">Media Preview</span>
+                      <button
+                        type="button"
+                        onClick={() => setEditingCinema({ ...editingCinema, media_url: '' })}
+                        className="text-red-500 hover:text-red-700"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                    {editingCinema.media_type === 'video' ? (
+                      <div className="w-full h-36 bg-black rounded-lg overflow-hidden">
+                        <UniversalVideo src={editingCinema.media_url} className="w-full h-36" controls={true} />
+                      </div>
+                    ) : (
+                      <img src={editingCinema.media_url} alt="Preview" className="w-full h-36 object-cover rounded-lg" />
+                    )}
+                  </div>
+                )}
               </div>
             </div>
             <div>

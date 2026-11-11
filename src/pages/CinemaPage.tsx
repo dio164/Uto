@@ -1,28 +1,33 @@
 import React, { useState } from 'react';
 import { useUniverseData } from '../hooks/useUniverseData';
 import { CinemaMediaItem } from '../types/universeData';
-import { ArrowLeft, Film, Play, X, Camera, Video } from 'lucide-react';
+import { ArrowLeft, Film, Play, X, Camera } from 'lucide-react';
+import { UniversalVideo, UniversalVideoThumbnail } from '../components/Common/UniversalVideo';
+import { parseVideoUrl } from '../lib/videoHelper';
 
 interface CinemaPageProps {
   onNavigateBack: () => void;
 }
 
 function MediaThumbnail({ item, onClick }: { item: CinemaMediaItem; onClick: () => void }) {
+  const parsed = item.media_type === 'video' ? parseVideoUrl(item.media_url) : null;
+  const thumb = item.thumbnail_url || parsed?.thumbnailUrl;
+
   return (
     <button
       onClick={onClick}
-      className="group relative rounded-2xl overflow-hidden bg-gray-900 aspect-video border border-white/10 hover:border-pink-300/50 transition-all hover:shadow-xl hover:scale-[1.02] duration-300"
+      className="group relative rounded-2xl overflow-hidden bg-gray-900 aspect-video border border-white/10 hover:border-pink-300/50 transition-all hover:shadow-xl hover:scale-[1.02] duration-300 w-full"
     >
       {/* Thumbnail image */}
-      {item.thumbnail_url ? (
-        <img src={item.thumbnail_url} alt={item.title} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
+      {thumb ? (
+        <img src={thumb} alt={item.title} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
+      ) : item.media_type === 'video' ? (
+        <div className="w-full h-full relative">
+          <UniversalVideoThumbnail src={item.media_url} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
+        </div>
       ) : (
         <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#4D2531] to-[#1a0a2e]">
-          {item.media_type === 'video' ? (
-            <Video className="w-10 h-10 text-pink-300/50" />
-          ) : (
-            <Camera className="w-10 h-10 text-pink-300/50" />
-          )}
+          <Camera className="w-10 h-10 text-pink-300/50" />
         </div>
       )}
 
@@ -39,7 +44,7 @@ function MediaThumbnail({ item, onClick }: { item: CinemaMediaItem; onClick: () 
       )}
 
       {/* Text overlay */}
-      <div className="absolute bottom-0 left-0 right-0 p-3">
+      <div className="absolute bottom-0 left-0 right-0 p-3 text-left">
         <div className="text-[11px] text-pink-300/80 font-sans tracking-wide uppercase">
           {item.recap_month ? `${item.recap_month} ` : ''}{item.recap_year} · {item.media_type}
         </div>
@@ -60,11 +65,11 @@ function LightboxModal({ item, onClose }: { item: CinemaMediaItem; onClose: () =
         {/* Media */}
         <div className="rounded-2xl overflow-hidden bg-black shadow-2xl">
           {item.media_type === 'video' ? (
-            <video
+            <UniversalVideo
               src={item.media_url}
-              controls
               autoPlay
-              className="w-full max-h-[70vh] object-contain bg-black"
+              controls
+              className="w-full max-h-[70vh] bg-black"
             />
           ) : (
             <img

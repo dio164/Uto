@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { JESSICA_CONTENT, TimelineEntry } from '../../config/jessicaContent';
 import { OrnamentalDivider } from '../Decorative/BotanicalCorners';
 import { Calendar, Sparkles, Image as ImageIcon, X, ZoomIn, Play } from 'lucide-react';
+import { UniversalVideo, UniversalVideoThumbnail } from '../Common/UniversalVideo';
 
 // ─── Lightbox ────────────────────────────────────────────────────────────────
 interface LightboxProps {
@@ -54,11 +55,11 @@ const Lightbox: React.FC<LightboxProps> = ({ src, caption, type, onClose }) => {
           {/* Media */}
           <div className="rounded-2xl overflow-hidden border border-[#DE9EB0]/40 shadow-2xl bg-[#1A0E12]">
             {type === 'video' ? (
-              <video
+              <UniversalVideo
                 src={src}
                 controls
                 autoPlay
-                className="w-full max-h-[75vh] object-contain"
+                className="w-full max-h-[75vh]"
               />
             ) : (
               <img
@@ -223,13 +224,12 @@ export const StoryTimeline: React.FC<StoryTimelineProps> = ({ entries }) => {
                           aria-label="Play video"
                         >
                           {/* Video preview thumbnail */}
-                          <video
-                            src={entry.video}
-                            className="w-full h-48 object-cover pointer-events-none"
-                            muted
-                            playsInline
-                            preload="metadata"
-                          />
+                          <div className="w-full h-48 bg-[#1A0E12] pointer-events-none">
+                            <UniversalVideoThumbnail
+                              src={entry.video}
+                              className="w-full h-48 object-cover pointer-events-none"
+                            />
+                          </div>
                           {/* Play button overlay */}
                           <div className="absolute inset-0 bg-[#1A0E12]/30 group-hover:bg-[#1A0E12]/50 transition-colors duration-300 flex items-center justify-center">
                             <div className="w-12 h-12 rounded-full bg-[#FFF9F2]/90 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
