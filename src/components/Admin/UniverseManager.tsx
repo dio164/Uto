@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useUniverseData } from '../../hooks/useUniverseData';
+import { supabase, isSupabaseConfigured } from '../../lib/supabase';
 import {
   RecordingItem,
   LetterItem,
@@ -27,6 +28,10 @@ import {
   Eye,
   Database,
   Music,
+  Upload,
+  Loader2,
+  Volume2,
+  AlertCircle,
 } from 'lucide-react';
 
 export const UniverseManager: React.FC = () => {
@@ -67,6 +72,171 @@ export const UniverseManager: React.FC = () => {
   const [editingLittleThing, setEditingLittleThing] = useState<Partial<LittleThingItem> | null>(null);
   const [editingFutureMuseum, setEditingFutureMuseum] = useState<Partial<FutureMuseumItem> | null>(null);
 
+  // Audio upload state
+  const [isUploadingAudio, setIsUploadingAudio] = useState(false);
+  const [audioUploadError, setAudioUploadError] = useState<string | null>(null);
+  const [showManualAudioUrl, setShowManualAudioUrl] = useState(false);
+  const audioFileInputRef = useRef<HTMLInputElement | null>(null);
+  const artworkInputRef = useRef<HTMLInputElement | null>(null);
+
+  // Cinema upload state
+  const [isUploadingCinema, setIsUploadingCinema] = useState(false);
+  const [cinemaUploadError, setCinemaUploadError] = useState<string | null>(null);
+  const cinemaFileInputRef = useRef<HTMLInputElement | null>(null);
+
+  // Audio file handler: extracts duration, tries Supabase Storage first, falls back to base64
+  const handleAudioFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingAudio(true);
+    setAudioUploadError(null);
+
+    // Auto extract duration
+    try {
+      const objUrl = URL.createObjectURL(file);
+      const tempAudio = new Audio(objUrl);
+      tempAudio.onloadedmetadata = () => {
+        const secsTotal = Math.floor(tempAudio.duration);
+        if (!isNaN(secsTotal) && secsTotal > 0) {
+          const m = Math.floor(secsTotal / 60);
+          const s = secsTotal % 60;
+          setEditingRecording((prev) =>
+            prev ? { ...prev, duration: `${m}:${String(s).padStart(2, '0')}` } : null
+          );
+        }
+        URL.revokeObjectURL(objUrl);
+      };
+    } catch {
+      // ignore
+    }
+
+    // Try Supabase Storage first if configured
+    let uploadedUrl: string | null = null;
+    if (isSupabaseConfigured) {
+      try {
+        const cleanName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+        const path = `audio/${Date.now()}_${cleanName}`;
+        const { data, error } = await supabase.storage.from('universe_media').upload(path, file, {
+          cacheControl: '3600',
+          upsert: true,
+        });
+        if (!error && data) {
+          const { data: { publicUrl } } = supabase.storage.from('universe_media').getPublicUrl(path);
+          uploadedUrl = publicUrl;
+        }
+      } catch (err) {
+        console.warn('Storage upload error, falling back to base64', err);
+      }
+    }
+
+    // Fallback to Base64 Data URL (stored directly in DB)
+    if (!uploadedUrl) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const base64 = reader.result as string;
+        setEditingRecording((prev) =>
+          prev
+            ? {
+                ...prev,
+                audio_url: base64,
+                title: prev.title || file.name.replace(/\.[^/.]+$/, ''),
+              }
+            : null
+        );
+        setIsUploadingAudio(false);
+      };
+      reader.onerror = () => {
+        setAudioUploadError('Failed to read audio file.');
+        setIsUploadingAudio(false);
+      };
+      reader.readAsDataURL(file);
+      return;
+    }
+
+    setEditingRecording((prev) =>
+      prev
+        ? {
+            ...prev,
+            audio_url: uploadedUrl!,
+            title: prev.title || file.name.replace(/\.[^/.]+$/, ''),
+          }
+        : null
+    );
+    setIsUploadingAudio(false);
+  };
+
+  // Artwork upload handler
+  const handleArtworkUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      setEditingRecording((prev) => (prev ? { ...prev, artwork_url: reader.result as string } : null));
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Cinema media upload handler
+  const handleCinemaFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploadingCinema(true);
+    setCinemaUploadError(null);
+
+    const isVideo = file.type.startsWith('video');
+
+    if (isSupabaseConfigured) {
+      try {
+        const cleanName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+        const folder = isVideo ? 'videos' : 'photos';
+        const path = `cinema/${folder}/${Date.now()}_${cleanName}`;
+        const { data, error } = await supabase.storage.from('universe_media').upload(path, file, {
+          cacheControl: '3600',
+          upsert: true,
+        });
+        if (!error && data) {
+          const { data: { publicUrl } } = supabase.storage.from('universe_media').getPublicUrl(path);
+          setEditingCinema((prev) =>
+            prev
+              ? {
+                  ...prev,
+                  media_url: publicUrl,
+                  media_type: isVideo ? 'video' : 'photo',
+                  title: prev.title || file.name.replace(/\.[^/.]+$/, ''),
+                }
+              : null
+          );
+          setIsUploadingCinema(false);
+          return;
+        }
+      } catch (err) {
+        console.warn('Cinema storage upload error, falling back to base64', err);
+      }
+    }
+
+    // Base64 fallback
+    const reader = new FileReader();
+    reader.onload = () => {
+      setEditingCinema((prev) =>
+        prev
+          ? {
+              ...prev,
+              media_url: reader.result as string,
+              media_type: isVideo ? 'video' : 'photo',
+              title: prev.title || file.name.replace(/\.[^/.]+$/, ''),
+            }
+          : null
+      );
+      setIsUploadingCinema(false);
+    };
+    reader.onerror = () => {
+      setCinemaUploadError('Failed to read file.');
+      setIsUploadingCinema(false);
+    };
+    reader.readAsDataURL(file);
+  };
+
   const UNIVERSE_SQL = `-- Planet Uto Universe Schema – paste in Supabase SQL Editor
 CREATE TABLE IF NOT EXISTS public.universe_recordings (id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text, title TEXT NOT NULL, description TEXT, audio_url TEXT NOT NULL, artwork_url TEXT, category TEXT NOT NULL DEFAULT 'Little Voicenotes', duration TEXT, date_recorded TEXT, is_published BOOLEAN DEFAULT true, order_index INTEGER DEFAULT 0, created_at TIMESTAMPTZ DEFAULT NOW(), updated_at TIMESTAMPTZ DEFAULT NOW());
 CREATE TABLE IF NOT EXISTS public.universe_letters (id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text, title TEXT NOT NULL, content TEXT NOT NULL, category TEXT NOT NULL DEFAULT 'Open When You Miss Me', cover_artwork TEXT, unlock_date TIMESTAMPTZ, is_locked BOOLEAN DEFAULT false, is_published BOOLEAN DEFAULT true, created_at TIMESTAMPTZ DEFAULT NOW(), updated_at TIMESTAMPTZ DEFAULT NOW());
@@ -83,7 +253,10 @@ CREATE POLICY "Public read dates" ON public.universe_dates FOR SELECT TO anon, a
 CREATE POLICY "Public read flowers" ON public.universe_flowers FOR SELECT TO anon, authenticated USING (true); CREATE POLICY "Public write flowers" ON public.universe_flowers FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "Public read cinema" ON public.universe_cinema FOR SELECT TO anon, authenticated USING (true); CREATE POLICY "Public write cinema" ON public.universe_cinema FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "Public read little_things" ON public.universe_little_things FOR SELECT TO anon, authenticated USING (true); CREATE POLICY "Public write little_things" ON public.universe_little_things FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
-CREATE POLICY "Public read future_museum" ON public.universe_future_museum FOR SELECT TO anon, authenticated USING (true); CREATE POLICY "Public write future_museum" ON public.universe_future_museum FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);`;
+CREATE POLICY "Public read future_museum" ON public.universe_future_museum FOR SELECT TO anon, authenticated USING (true); CREATE POLICY "Public write future_museum" ON public.universe_future_museum FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
+INSERT INTO storage.buckets (id, name, public) VALUES ('universe_media', 'universe_media', true) ON CONFLICT (id) DO NOTHING;
+CREATE POLICY "Public storage read" ON storage.objects FOR SELECT USING (bucket_id = 'universe_media');
+CREATE POLICY "Public storage modify" ON storage.objects FOR ALL TO anon, authenticated USING (bucket_id = 'universe_media') WITH CHECK (bucket_id = 'universe_media');`;
 
   const handleCopySql = () => {
     navigator.clipboard.writeText(UNIVERSE_SQL);
@@ -455,9 +628,120 @@ CREATE POLICY "Public read future_museum" ON public.universe_future_museum FOR S
                 {['Spoken Letters', 'Little Voicenotes', 'Songs for You', 'For When You Miss Me', 'Special Occasions', 'Just Because'].map((c) => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
+            {/* Audio Upload Area */}
+            <div className="space-y-2">
+              <label className="block text-xs font-medium text-[#4D2531]">Audio Recording</label>
+              <div className="flex flex-col gap-2">
+                <input
+                  ref={audioFileInputRef}
+                  type="file"
+                  accept="audio/*,.mp3,.m4a,.wav,.ogg,.aac"
+                  onChange={handleAudioFileUpload}
+                  className="hidden"
+                />
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => audioFileInputRef.current?.click()}
+                    disabled={isUploadingAudio}
+                    className="flex-1 flex items-center justify-center space-x-2 px-4 py-2.5 rounded-xl bg-[#FAD4E0]/60 hover:bg-[#FAD4E0] text-[#4D2531] border border-[#D4607A]/30 text-xs font-medium transition-all shadow-xs disabled:opacity-50"
+                  >
+                    {isUploadingAudio ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin text-[#D4607A]" />
+                        <span>Uploading & Processing Audio...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="w-4 h-4 text-[#D4607A]" />
+                        <span>Choose Audio File (.mp3, .m4a, .wav)</span>
+                      </>
+                    )}
+                  </button>
+
+                  {editingRecording.audio_url && (
+                    <span className="inline-flex items-center space-x-1 text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-2 rounded-xl shrink-0">
+                      <Check className="w-3.5 h-3.5" />
+                      <span>Ready</span>
+                    </span>
+                  )}
+                </div>
+
+                {audioUploadError && (
+                  <div className="flex items-center space-x-1.5 text-xs text-rose-600 bg-rose-50 p-2.5 rounded-xl border border-rose-200">
+                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    <span>{audioUploadError}</span>
+                  </div>
+                )}
+
+                {/* Live Audio Preview */}
+                {editingRecording.audio_url && (
+                  <div className="p-3 bg-[#FAF0F3] rounded-xl border border-[#F8D7E3] space-y-2">
+                    <div className="flex items-center justify-between text-[11px] text-[#4D2531]">
+                      <span className="font-medium flex items-center space-x-1">
+                        <Volume2 className="w-3.5 h-3.5 text-[#D4607A]" />
+                        <span>Audio Preview</span>
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setEditingRecording({ ...editingRecording, audio_url: '' })}
+                        className="text-red-500 hover:text-red-700 font-medium"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                    <audio controls className="w-full h-8" src={editingRecording.audio_url} />
+                  </div>
+                )}
+
+                {/* Optional direct URL input */}
+                <div>
+                  <button
+                    type="button"
+                    onClick={() => setShowManualAudioUrl(!showManualAudioUrl)}
+                    className="text-[11px] text-[#D4607A] hover:underline"
+                  >
+                    {showManualAudioUrl ? '— Hide manual URL field' : '+ Or paste external audio URL'}
+                  </button>
+                  {showManualAudioUrl && (
+                    <input
+                      type="text"
+                      value={editingRecording.audio_url || ''}
+                      onChange={(e) => setEditingRecording({ ...editingRecording, audio_url: e.target.value })}
+                      placeholder="https://... direct audio link or data:audio..."
+                      className="w-full px-3 py-2 mt-1 rounded-xl border border-[#F8D7E3]/80 text-xs focus:outline-hidden focus:border-[#D4607A]"
+                    />
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Optional Artwork Upload */}
             <div>
-              <label className="block text-xs font-medium text-[#4D2531] mb-1">Audio URL (direct .mp3 / .m4a / .wav link)</label>
-              <input type="text" value={editingRecording.audio_url || ''} onChange={(e) => setEditingRecording({ ...editingRecording, audio_url: e.target.value })} placeholder="https://..." className="w-full px-3 py-2 rounded-xl border border-[#F8D7E3]/80 text-sm focus:outline-hidden focus:border-[#D4607A]" />
+              <label className="block text-xs font-medium text-[#4D2531] mb-1">Cover Artwork (Optional)</label>
+              <div className="flex items-center gap-2">
+                <input
+                  ref={artworkInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleArtworkUpload}
+                  className="hidden"
+                />
+                <button
+                  type="button"
+                  onClick={() => artworkInputRef.current?.click()}
+                  className="flex items-center space-x-1.5 px-3 py-2 rounded-xl border border-[#F8D7E3] text-xs text-[#4D2531] hover:bg-[#FAD4E0]/40"
+                >
+                  <Upload className="w-3.5 h-3.5 text-[#D4607A]" />
+                  <span>Choose Cover Image</span>
+                </button>
+                {editingRecording.artwork_url && (
+                  <div className="w-8 h-8 rounded-lg overflow-hidden border border-[#D4607A]/40 shrink-0">
+                    <img src={editingRecording.artwork_url} alt="Cover" className="w-full h-full object-cover" />
+                  </div>
+                )}
+              </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -630,9 +914,62 @@ CREATE POLICY "Public read future_museum" ON public.universe_future_museum FOR S
                 <input type="text" value={editingCinema.recap_year || ''} onChange={(e) => setEditingCinema({ ...editingCinema, recap_year: e.target.value })} placeholder="2025" className="w-full px-3 py-2 rounded-xl border border-[#F8D7E3]/80 text-sm focus:outline-hidden focus:border-[#D4607A]" />
               </div>
             </div>
-            <div>
-              <label className="block text-xs font-medium text-[#4D2531] mb-1">Media URL (direct link)</label>
-              <input type="text" value={editingCinema.media_url || ''} onChange={(e) => setEditingCinema({ ...editingCinema, media_url: e.target.value })} placeholder="https://..." className="w-full px-3 py-2 rounded-xl border border-[#F8D7E3]/80 text-sm focus:outline-hidden focus:border-[#D4607A]" />
+            {/* Cinema Media Upload Area */}
+            <div className="space-y-2">
+              <label className="block text-xs font-medium text-[#4D2531]">Video or Photo Media</label>
+              <div className="flex flex-col gap-2">
+                <input
+                  ref={cinemaFileInputRef}
+                  type="file"
+                  accept="image/*,video/*"
+                  onChange={handleCinemaFileUpload}
+                  className="hidden"
+                />
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => cinemaFileInputRef.current?.click()}
+                    disabled={isUploadingCinema}
+                    className="flex-1 flex items-center justify-center space-x-2 px-4 py-2.5 rounded-xl bg-[#FAD4E0]/60 hover:bg-[#FAD4E0] text-[#4D2531] border border-[#D4607A]/30 text-xs font-medium transition-all shadow-xs disabled:opacity-50"
+                  >
+                    {isUploadingCinema ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin text-[#D4607A]" />
+                        <span>Uploading Media...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="w-4 h-4 text-[#D4607A]" />
+                        <span>Choose Video or Photo File</span>
+                      </>
+                    )}
+                  </button>
+                  {editingCinema.media_url && (
+                    <span className="inline-flex items-center space-x-1 text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-2 rounded-xl shrink-0">
+                      <Check className="w-3.5 h-3.5" />
+                      <span>Ready</span>
+                    </span>
+                  )}
+                </div>
+
+                {cinemaUploadError && (
+                  <div className="flex items-center space-x-1.5 text-xs text-rose-600 bg-rose-50 p-2.5 rounded-xl border border-rose-200">
+                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    <span>{cinemaUploadError}</span>
+                  </div>
+                )}
+
+                <div>
+                  <label className="block text-[11px] text-[#4D2531]/70 mb-1">Or direct media URL</label>
+                  <input
+                    type="text"
+                    value={editingCinema.media_url || ''}
+                    onChange={(e) => setEditingCinema({ ...editingCinema, media_url: e.target.value })}
+                    placeholder="https://... direct link or data:image..."
+                    className="w-full px-3 py-2 rounded-xl border border-[#F8D7E3]/80 text-xs focus:outline-hidden focus:border-[#D4607A]"
+                  />
+                </div>
+              </div>
             </div>
             <div>
               <label className="block text-xs font-medium text-[#4D2531] mb-1">Caption / Story</label>

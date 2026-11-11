@@ -150,3 +150,14 @@ CREATE POLICY "All modify little things" ON public.universe_little_things FOR AL
 CREATE POLICY "All modify future museum" ON public.universe_future_museum FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
 CREATE POLICY "All modify settings" ON public.universe_settings FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
 
+-- ==============================================================================
+-- 9. OPTIONAL: SUPABASE STORAGE BUCKET FOR DIRECT AUDIO & MEDIA UPLOADS
+-- ==============================================================================
+INSERT INTO storage.buckets (id, name, public) 
+VALUES ('universe_media', 'universe_media', true) 
+ON CONFLICT (id) DO NOTHING;
+
+CREATE POLICY "Public storage read" ON storage.objects FOR SELECT USING (bucket_id = 'universe_media');
+CREATE POLICY "Public storage modify" ON storage.objects FOR ALL TO anon, authenticated USING (bucket_id = 'universe_media') WITH CHECK (bucket_id = 'universe_media');
+
+
