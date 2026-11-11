@@ -243,3 +243,4 @@ export const UniverseMap: React.FC<UniverseMapProps> = ({ onSelectDestination })
     </section>
   );
 };
+

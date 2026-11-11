@@ -128,3 +128,4 @@ export const CelestialSky: React.FC = () => {
     </div>
   );
 };
+

@@ -87,3 +87,4 @@ export const DiscoveriesSection: React.FC<DiscoveriesSectionProps> = ({
     </section>
   );
 };
+

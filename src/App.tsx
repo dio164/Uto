@@ -4,6 +4,13 @@ import { Home } from './pages/Home';
 import { AdminPage } from './pages/Admin';
 import { JessicaPage } from './pages/Jessica';
 import { BookReaderPage } from './pages/BookReaderPage';
+import { ObservatoryPage } from './pages/ObservatoryPage';
+import { PostOfficePage } from './pages/PostOfficePage';
+import { ListeningRoomPage } from './pages/ListeningRoomPage';
+import { GardenPage } from './pages/GardenPage';
+import { CinemaPage } from './pages/CinemaPage';
+import { LittleThingsPage } from './pages/LittleThingsPage';
+import { FutureMuseumPage } from './pages/FutureMuseumPage';
 
 export function App() {
   const {
@@ -117,6 +124,41 @@ export function App() {
         onReturnToUniverse={() => navigateTo('/')}
       />
     );
+  }
+
+  // 5. The Observatory
+  if (currentPath === '/observatory') {
+    return <ObservatoryPage onNavigateBack={() => navigateTo('/')} />;
+  }
+
+  // 6. The Post Office
+  if (currentPath === '/post-office') {
+    return <PostOfficePage onNavigateBack={() => navigateTo('/')} />;
+  }
+
+  // 7. The Listening Room
+  if (currentPath === '/listening-room') {
+    return <ListeningRoomPage onNavigateBack={() => navigateTo('/')} />;
+  }
+
+  // 8. The Enchanted Garden
+  if (currentPath === '/garden') {
+    return <GardenPage onNavigateBack={() => navigateTo('/')} />;
+  }
+
+  // 9. Our Little Cinema
+  if (currentPath === '/cinema') {
+    return <CinemaPage onNavigateBack={() => navigateTo('/')} />;
+  }
+
+  // 10. The Little Things Archive
+  if (currentPath === '/little-things') {
+    return <LittleThingsPage onNavigateBack={() => navigateTo('/')} />;
+  }
+
+  // 11. The Future Museum
+  if (currentPath === '/future-museum') {
+    return <FutureMuseumPage onNavigateBack={() => navigateTo('/')} />;
   }
 
   // 4. Main Entrance: Planet Uto Landing Page

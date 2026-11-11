@@ -53,3 +53,4 @@ export interface CelestialStar {
   twinkleDuration: number;
   secretMessage?: string;
 }
+

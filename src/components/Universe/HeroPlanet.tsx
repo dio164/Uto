@@ -155,3 +155,4 @@ export const HeroPlanet: React.FC<HeroPlanetProps> = ({
     </section>
   );
 };
+

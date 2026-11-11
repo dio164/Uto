@@ -99,3 +99,4 @@ export const DailyMessageCard: React.FC<DailyMessageCardProps> = ({ customMessag
     </section>
   );
 };
+
