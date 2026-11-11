@@ -1,15 +1,19 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useEffect } from 'react';
 import { Poem } from '../types/poem';
-import { BookCover } from '../components/Book/BookCover';
-import { Book } from '../components/Book/Book';
+import { CelestialSky } from '../components/Universe/CelestialSky';
+import { UniverseNav } from '../components/Universe/UniverseNav';
+import { HeroPlanet } from '../components/Universe/HeroPlanet';
+import { DailyMessageCard } from '../components/Universe/DailyMessageCard';
+import { UniverseMap } from '../components/Universe/UniverseMap';
+import { DiscoveriesSection } from '../components/Universe/DiscoveriesSection';
 import { FloatingPetals } from '../components/Decorative/FloatingPetals';
 import { AmbientDust } from '../components/Decorative/AmbientDust';
-import { BOOK_CONFIG } from '../config/book';
-import { Feather, RefreshCw, Key, Flower2 } from 'lucide-react';
+import { MusicWidget } from '../components/Audio/MusicWidget';
 import { useSound } from '../hooks/useSound';
 import { useYouTubePlayer } from '../hooks/useYouTubePlayer';
-import { MusicWidget } from '../components/Audio/MusicWidget';
+import { useJessicaContent } from '../hooks/useJessicaContent';
+import { UNIVERSE_CONFIG } from '../config/universe';
+import { Flower2, Key, BookOpen, Heart } from 'lucide-react';
 
 interface HomeProps {
   poems: Poem[];
@@ -18,47 +22,68 @@ interface HomeProps {
   onRefetch: () => void;
   onNavigateToAdmin: () => void;
   onNavigateToJessica: () => void;
+  onNavigateToDestination?: (path: string) => void;
 }
 
 export const Home: React.FC<HomeProps> = ({
-  poems,
-  loading,
-  error,
-  onRefetch,
   onNavigateToAdmin,
   onNavigateToJessica,
+  onNavigateToDestination,
 }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [hasOpenedBook, setHasOpenedBook] = useState(false);
-  const { playOpen, isMuted } = useSound();
-  const ytPlayer = useYouTubePlayer("PLfyuOOAYg9T0");
+  const { isMuted } = useSound();
+  const ytPlayer = useYouTubePlayer(UNIVERSE_CONFIG.musicPlaylistId);
+  const { timeline } = useJessicaContent();
 
   useEffect(() => {
     ytPlayer.setMuted(isMuted);
   }, [isMuted, ytPlayer]);
 
-  const handleOpenBook = () => {
-    playOpen();
-    setIsOpen(true);
-    setHasOpenedBook(true);
-    if (!ytPlayer.isPlaying) {
-      ytPlayer.play();
+  useEffect(() => {
+    const originalTitle = document.title;
+    document.title = 'Planet Uto — A Little Universe for Jessica';
+    return () => {
+      document.title = originalTitle;
+    };
+  }, []);
+
+  const handleNavigate = (path: string) => {
+    if (onNavigateToDestination) {
+      onNavigateToDestination(path);
+    } else if (path === '/uto' || path === '/jessica') {
+      onNavigateToJessica();
+    } else if (path === '/admin') {
+      onNavigateToAdmin();
+    } else {
+      window.location.href = path;
     }
   };
 
-  const handleCloseBook = () => {
-    setIsOpen(false);
+  const scrollToMap = () => {
+    const mapElement = document.getElementById('universe-map');
+    if (mapElement) {
+      mapElement.scrollIntoView({ behavior: 'smooth' });
+    }
   };
 
   return (
-    <div className="relative min-h-screen flex flex-col justify-between overflow-x-hidden">
-      {/* Background Decorative Atmosphere */}
+    <div className="relative min-h-screen flex flex-col justify-between overflow-x-hidden text-[#FFF9F2] selection:bg-[#F472B6]/40 selection:text-white">
+      {/* 1. Deep Celestial Pink Sky & Nebulas */}
+      <CelestialSky />
+
+      {/* 2. Floating Atmospheric Petals & Stardust */}
       <FloatingPetals />
       <AmbientDust />
 
-      {/* Interactive Music Widget */}
+      {/* 3. Universe Navigation Header */}
+      <UniverseNav
+        onNavigate={handleNavigate}
+        isPlayingMusic={ytPlayer.isPlaying}
+        onToggleMusic={ytPlayer.togglePlay}
+      />
+
+      {/* 4. Ambient Music Player Widget (Hidden Audio Driver + UI Controls in Nav) */}
       <MusicWidget
-        isVisible={hasOpenedBook}
+        isVisible={false}
         isPlaying={ytPlayer.isPlaying}
         isLooping={ytPlayer.isLooping}
         currentTitle={ytPlayer.currentTitle}
@@ -69,116 +94,69 @@ export const Home: React.FC<HomeProps> = ({
         mountNode={ytPlayer.mountNode}
       />
 
-      {/* Main Content Area */}
-      <main className="relative z-20 flex-1 flex flex-col items-center justify-center p-2 sm:p-4">
-        <AnimatePresence mode="wait">
-          {/* 1. Loading State */}
-          {loading ? (
-            <motion.div
-              key="loading-state"
-              className="flex flex-col items-center justify-center text-center p-8"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.8 }}
-            >
-              <div className="relative w-32 h-44 rounded-r-lg rounded-l-sm book-cover-texture shadow-book border border-[#DE9EB0]/40 flex items-center justify-center animate-pulse-faint">
-                <Feather className="w-8 h-8 text-[#E2C27F] opacity-80" />
-                <div className="absolute inset-2 border border-[#E2C27F]/40 rounded" />
-              </div>
-              <p className="font-poem italic text-2xl text-[#743F4D] mt-6 tracking-wide">
-                gathering words...
-              </p>
-              <p className="font-sans text-[11px] uppercase tracking-[0.25em] text-[#C98598] mt-1">
-                preparing the journal
-              </p>
-            </motion.div>
-          ) : error ? (
-            /* 2. Error State */
-            <motion.div
-              key="error-state"
-              className="flex flex-col items-center justify-center text-center max-w-md paper-texture p-8 rounded-2xl border border-[#DE9EB0]/50 shadow-book"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-            >
-              <h2 className="font-blackletter text-3xl text-[#743F4D]">A Blurred Memory</h2>
-              <p className="font-poem italic text-lg text-[#392B30] mt-3 leading-relaxed">
-                {error}
-              </p>
-              <p className="font-sans text-xs text-[#8B737C] mt-2">
-                The offline collection will be presented while we reconnect.
-              </p>
-              <button
-                onClick={onRefetch}
-                className="mt-6 px-5 py-2 rounded-lg bg-[#FAF0F3] border border-[#DE9EB0] text-[#743F4D] hover:bg-[#F3CCD7]/50 font-poem text-base flex items-center space-x-2 transition-all shadow-sm"
-              >
-                <RefreshCw className="w-4 h-4" />
-                <span>Try Again</span>
-              </button>
-            </motion.div>
-          ) : !isOpen ? (
-            /* 3. Closed Book Landing State */
-            <motion.div
-              key="closed-book-state"
-              className="w-full flex items-center justify-center"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0, scale: 1.05 }}
-              transition={{ duration: 0.6 }}
-            >
-              <BookCover onOpen={handleOpenBook} />
-            </motion.div>
-          ) : (
-            /* 4. Interactive Book Reader */
-            <motion.div
-              key="open-book-state"
-              className="w-full flex items-center justify-center"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-            >
-              <Book poems={poems} onCloseBook={handleCloseBook} />
-            </motion.div>
-          )}
-        </AnimatePresence>
+      {/* 5. Main Celestial Universe Content */}
+      <main className="relative z-10 flex-1 flex flex-col pt-16">
+        {/* Welcome Section with Illustrated Floating Planet */}
+        <HeroPlanet
+          onExploreClick={scrollToMap}
+          onNavigateToBook={() => handleNavigate('/book')}
+          onNavigateToJessica={() => handleNavigate('/uto')}
+        />
+
+        {/* Daily / Date-Aware Romantic Note */}
+        <DailyMessageCard />
+
+        {/* The Illustrated Universe Map */}
+        <UniverseMap onSelectDestination={handleNavigate} />
+
+        {/* Discoveries Section: "Something is waiting for you..." */}
+        <DiscoveriesSection
+          timeline={timeline}
+          onNavigateToDestination={handleNavigate}
+        />
       </main>
 
-      {/* Discreet Footer with Uto Experience & Curator Access */}
-      <footer className="relative z-20 py-4 px-6 flex items-center justify-between text-xs font-poem text-[#8B737C]">
-        {/* Discreet Uto Experience Entry (Bottom Left) */}
-        <button
-          onClick={onNavigateToJessica}
-          title="For Uto"
-          className="group flex items-center space-x-1.5 text-[#AF99A2] hover:text-[#743F4D] transition-colors p-1"
-          aria-label="For Uto"
-        >
-          <div className="w-5 h-5 rounded-full bg-[#FAF0F3] border border-[#DE9EB0]/60 flex items-center justify-center group-hover:border-[#C98598] transition-colors shadow-xs">
-            <Flower2 className="w-2.5 h-2.5 text-[#C98598] group-hover:text-[#743F4D]" />
-          </div>
-          <span className="text-[10px] font-sans uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
-            uto
+      {/* 6. Romantic Universe Footer */}
+      <footer className="relative z-20 py-8 px-6 border-t border-[#FBCFE8]/20 bg-[#1F0B18]/60 backdrop-blur-md flex flex-col sm:flex-row items-center justify-between text-xs font-poem text-[#FBCFE8]/80 gap-4">
+        {/* Left: Quick Portal to Jessica Keepsake */}
+        <div className="flex items-center space-x-3">
+          <button
+            onClick={() => handleNavigate('/uto')}
+            className="flex items-center space-x-1.5 px-3 py-1 rounded-full bg-white/10 hover:bg-white/20 border border-[#F472B6]/40 text-[#FBCFE8] hover:text-white transition-colors"
+          >
+            <Flower2 className="w-3.5 h-3.5 text-[#F472B6]" />
+            <span className="text-[11px] font-sans">For Uto Keepsake</span>
+          </button>
+
+          <button
+            onClick={() => handleNavigate('/book')}
+            className="flex items-center space-x-1.5 px-3 py-1 rounded-full bg-white/10 hover:bg-white/20 border border-[#E2C27F]/40 text-[#FDE047] hover:text-white transition-colors"
+          >
+            <BookOpen className="w-3.5 h-3.5 text-[#E2C27F]" />
+            <span className="text-[11px] font-sans">The Poetry Journal</span>
+          </button>
+        </div>
+
+        {/* Center: Dedicated to Jessica */}
+        <div className="text-center font-poem italic text-sm text-[#FBCFE8]/90">
+          <span className="flex items-center justify-center space-x-1">
+            <span>Planet Uto</span>
+            <Heart className="w-3 h-3 text-[#F472B6] fill-[#F472B6]" />
+            <span>Dedicated with all my love to Jessica</span>
           </span>
-        </button>
+        </div>
 
-        {/* Center: Copyright */}
-        <span className="italic tracking-widest text-[#B77973] text-center">
-          &copy; {BOOK_CONFIG.year} {BOOK_CONFIG.title}
-        </span>
-
-        {/* Discreet Curator / Admin Entry (Bottom Right) */}
+        {/* Right: Curator Desk Access */}
         <button
-          onClick={onNavigateToAdmin}
-          title="Curator's desk (/admin)"
-          className="group flex items-center space-x-1.5 text-[#AF99A2] hover:text-[#743F4D] transition-colors p-1"
-          aria-label="Open Curator Desk"
+          onClick={() => handleNavigate('/admin')}
+          title="Curator Studio"
+          className="group flex items-center space-x-1.5 text-[#FBCFE8]/70 hover:text-white transition-colors"
         >
           <span className="text-[10px] font-sans uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
             curator
           </span>
-          <div className="w-5 h-5 rounded-full bg-[#FAF0F3] border border-[#DE9EB0]/60 flex items-center justify-center group-hover:border-[#C98598] transition-colors shadow-xs">
-            <Key className="w-2.5 h-2.5 text-[#C98598] group-hover:text-[#743F4D]" />
+          <div className="w-7 h-7 rounded-full bg-white/10 border border-[#FBCFE8]/30 flex items-center justify-center group-hover:border-[#F472B6] transition-colors shadow-xs">
+            <Key className="w-3.5 h-3.5 text-[#E2C27F] group-hover:text-white" />
           </div>
         </button>
       </footer>
