@@ -101,10 +101,13 @@ CREATE POLICY "Public update jessica_content" ON public.jessica_content FOR ALL 
   const [aDesc, setADesc] = useState('');
   const [aIcon, setAIcon] = useState<'Heart' | 'Sparkles' | 'Compass' | 'BookOpen' | 'Sun' | 'Smile' | 'Feather'>('Heart');
   const [aImage, setAImage] = useState<string | undefined>(undefined);
+  const [aVideo, setAVideo] = useState<string | undefined>(undefined);
+  const [aVideoCaption, setAVideoCaption] = useState('');
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const appFileInputRef = useRef<HTMLInputElement | null>(null);
   const videoInputRef = useRef<HTMLInputElement | null>(null);
+  const appVideoInputRef = useRef<HTMLInputElement | null>(null);
 
   // Helper to handle image file upload, compress with canvas, and convert to base64
   const handleImageFileChange = (
@@ -169,6 +172,7 @@ CREATE POLICY "Public update jessica_content" ON public.jessica_content FOR ALL 
         `This video is ${sizeMB}MB. For seamless cloud sync and mobile playback, video file uploads should be under 6MB. For longer videos, please paste a direct video link instead.`
       );
       if (videoInputRef.current) videoInputRef.current.value = '';
+      if (appVideoInputRef.current) appVideoInputRef.current.value = '';
       return;
     }
 
@@ -235,21 +239,27 @@ CREATE POLICY "Public update jessica_content" ON public.jessica_content FOR ALL 
 
   const openNewAppreciation = () => {
     setEditingAppreciation(null);
+    setVideoError(null);
     setATitle('');
     setACategory('Character');
     setADesc('');
     setAIcon('Heart');
     setAImage(undefined);
+    setAVideo(undefined);
+    setAVideoCaption('');
     setIsAddingAppreciation(true);
   };
 
   const openEditAppreciation = (item: AppreciationItem) => {
     setEditingAppreciation(item);
+    setVideoError(null);
     setATitle(item.title);
     setACategory(item.category);
     setADesc(item.description);
     setAIcon(item.iconName || 'Heart');
     setAImage(item.image);
+    setAVideo(item.video);
+    setAVideoCaption(item.videoCaption || '');
     setIsAddingAppreciation(true);
   };
 
@@ -263,6 +273,8 @@ CREATE POLICY "Public update jessica_content" ON public.jessica_content FOR ALL 
       description: aDesc.trim(),
       iconName: aIcon,
       image: aImage || undefined,
+      video: aVideo || undefined,
+      videoCaption: aVideoCaption.trim() || undefined,
     };
 
     if (editingAppreciation) {
@@ -544,6 +556,13 @@ CREATE POLICY "Public update jessica_content" ON public.jessica_content FOR ALL 
                   {item.image ? (
                     <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden border border-[#DE9EB0]/50 shrink-0 bg-[#FAF0F3]">
                       <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
+                    </div>
+                  ) : item.video ? (
+                    <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden border border-[#DE9EB0]/50 shrink-0 bg-[#1A0E12] relative flex items-center justify-center">
+                      <UniversalVideoThumbnail src={item.video} className="w-full h-full object-cover" />
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                        <Video className="w-5 h-5 text-white/80" />
+                      </div>
                     </div>
                   ) : (
                     <div className="w-10 h-10 rounded-full bg-[#FAF0F3] border border-[#DE9EB0]/60 flex items-center justify-center text-[#8E4D60] shrink-0">
@@ -944,6 +963,68 @@ CREATE POLICY "Public update jessica_content" ON public.jessica_content FOR ALL 
                       onChange={(e) => handleImageFileChange(e, (dataUrl) => setAImage(dataUrl))}
                     />
                   </div>
+                )}
+              </div>
+
+              {/* Video Upload Section for Appreciation */}
+              <div className="pt-2 border-t border-[#DE9EB0]/30">
+                <label className="block text-xs font-sans uppercase tracking-wider text-[#743F4D] mb-1 font-medium">
+                  Video for this Keepsake (Optional)
+                </label>
+                {aVideo ? (
+                  <div className="relative w-full rounded-xl overflow-hidden border border-[#DE9EB0]/60 mb-2 bg-[#1A0E12]">
+                    <div className="w-full h-44 bg-black">
+                      <UniversalVideo src={aVideo} className="w-full h-44" controls={true} />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => { setAVideo(undefined); setAVideoCaption(''); }}
+                      className="absolute top-2 right-2 p-1.5 rounded-full bg-red-600 text-white shadow-md hover:bg-red-700 transition-colors z-10"
+                      title="Remove video"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-2">
+                    <button
+                      type="button"
+                      onClick={() => appVideoInputRef.current?.click()}
+                      className="w-full py-3.5 border-2 border-dashed border-[#DE9EB0]/70 rounded-xl bg-[#FAF0F3]/40 hover:bg-[#FAF0F3] text-[#743F4D] text-xs font-sans flex flex-col items-center justify-center gap-1 transition-colors"
+                    >
+                      <Video className="w-5 h-5 text-[#B77973]" />
+                      <span className="font-medium">Upload Video from device</span>
+                    </button>
+                    <input
+                      ref={appVideoInputRef}
+                      type="file"
+                      accept="video/*"
+                      className="hidden"
+                      onChange={(e) => handleVideoFileChange(e, (dataUrl) => setAVideo(dataUrl))}
+                    />
+                    <div className="flex items-center space-x-2">
+                      <span className="text-[10px] font-sans text-[#AF99A2] uppercase tracking-wider">or link:</span>
+                      <input
+                        type="text"
+                        value={aVideo || ''}
+                        onChange={(e) => setAVideo(e.target.value.trim() || undefined)}
+                        placeholder="Google Drive link, YouTube, or direct video URL"
+                        className="flex-1 px-2.5 py-1.5 text-xs bg-[#FAF0F3]/60 border border-[#DE9EB0]/50 rounded-lg text-[#392B30] outline-none"
+                      />
+                    </div>
+                    <p className="text-[11px] text-[#8B737C] font-sans">
+                      💡 Tip: Google Drive sharing links (set to "Anyone with the link can view") and YouTube links work seamlessly!
+                    </p>
+                  </div>
+                )}
+                {aVideo && (
+                  <input
+                    type="text"
+                    value={aVideoCaption}
+                    onChange={(e) => setAVideoCaption(e.target.value)}
+                    placeholder="Short video caption (optional)"
+                    className="w-full mt-2 px-3 py-1.5 text-xs bg-[#FAF0F3]/60 border border-[#DE9EB0]/50 rounded-lg text-[#392B30] outline-none"
+                  />
                 )}
               </div>
 

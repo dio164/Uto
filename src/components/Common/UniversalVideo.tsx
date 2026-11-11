@@ -113,3 +113,4 @@ export const UniversalVideoThumbnail: React.FC<UniversalVideoThumbnailProps> = (
     </div>
   );
 };
+

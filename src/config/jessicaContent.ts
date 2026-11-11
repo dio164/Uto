@@ -16,6 +16,9 @@ export interface AppreciationItem {
   category: string;
   description: string;
   image?: string;
+  imageCaption?: string;
+  video?: string;
+  videoCaption?: string;
   iconName?: 'Sparkles' | 'Heart' | 'Compass' | 'BookOpen' | 'Sun' | 'Smile' | 'Feather';
 }
 
