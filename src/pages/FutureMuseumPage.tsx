@@ -172,3 +172,4 @@ export const FutureMuseumPage: React.FC<FutureMuseumPageProps> = ({ onNavigateBa
     </div>
   );
 };
+

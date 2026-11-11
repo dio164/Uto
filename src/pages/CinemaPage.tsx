@@ -181,3 +181,4 @@ export const CinemaPage: React.FC<CinemaPageProps> = ({ onNavigateBack }) => {
     </div>
   );
 };
+

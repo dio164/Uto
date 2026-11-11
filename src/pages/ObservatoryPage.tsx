@@ -90,7 +90,7 @@ function FloatingStar({ style }: { style: React.CSSProperties }) {
 export const ObservatoryPage: React.FC<ObservatoryPageProps> = ({ onNavigateBack }) => {
   const { dates } = useUniverseData();
 
-  const stars = Array.from({ length: 60 }, (_) => ({
+  const stars = Array.from({ length: 60 }, () => ({
     left: `${Math.random() * 100}%`,
     top: `${Math.random() * 100}%`,
     opacity: Math.random() * 0.7 + 0.2,

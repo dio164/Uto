@@ -100,31 +100,31 @@ export function useUniverseData() {
 
         if (recRes.status === 'fulfilled' && recRes.value.data && recRes.value.data.length > 0) {
           setRecordings(recRes.value.data);
-          try { localStorage.setItem(STORAGE_KEYS.recordings, JSON.stringify(recRes.value.data)); } catch {}
+          try { localStorage.setItem(STORAGE_KEYS.recordings, JSON.stringify(recRes.value.data)); } catch (e) { void e; }
         }
         if (letRes.status === 'fulfilled' && letRes.value.data && letRes.value.data.length > 0) {
           setLetters(letRes.value.data);
-          try { localStorage.setItem(STORAGE_KEYS.letters, JSON.stringify(letRes.value.data)); } catch {}
+          try { localStorage.setItem(STORAGE_KEYS.letters, JSON.stringify(letRes.value.data)); } catch (e) { void e; }
         }
         if (dateRes.status === 'fulfilled' && dateRes.value.data && dateRes.value.data.length > 0) {
           setDates(dateRes.value.data);
-          try { localStorage.setItem(STORAGE_KEYS.dates, JSON.stringify(dateRes.value.data)); } catch {}
+          try { localStorage.setItem(STORAGE_KEYS.dates, JSON.stringify(dateRes.value.data)); } catch (e) { void e; }
         }
         if (flwRes.status === 'fulfilled' && flwRes.value.data && flwRes.value.data.length > 0) {
           setFlowers(flwRes.value.data);
-          try { localStorage.setItem(STORAGE_KEYS.flowers, JSON.stringify(flwRes.value.data)); } catch {}
+          try { localStorage.setItem(STORAGE_KEYS.flowers, JSON.stringify(flwRes.value.data)); } catch (e) { void e; }
         }
         if (cinRes.status === 'fulfilled' && cinRes.value.data && cinRes.value.data.length > 0) {
           setCinema(cinRes.value.data);
-          try { localStorage.setItem(STORAGE_KEYS.cinema, JSON.stringify(cinRes.value.data)); } catch {}
+          try { localStorage.setItem(STORAGE_KEYS.cinema, JSON.stringify(cinRes.value.data)); } catch (e) { void e; }
         }
         if (ltRes.status === 'fulfilled' && ltRes.value.data && ltRes.value.data.length > 0) {
           setLittleThings(ltRes.value.data);
-          try { localStorage.setItem(STORAGE_KEYS.littleThings, JSON.stringify(ltRes.value.data)); } catch {}
+          try { localStorage.setItem(STORAGE_KEYS.littleThings, JSON.stringify(ltRes.value.data)); } catch (e) { void e; }
         }
         if (fmRes.status === 'fulfilled' && fmRes.value.data && fmRes.value.data.length > 0) {
           setFutureMuseum(fmRes.value.data);
-          try { localStorage.setItem(STORAGE_KEYS.futureMuseum, JSON.stringify(fmRes.value.data)); } catch {}
+          try { localStorage.setItem(STORAGE_KEYS.futureMuseum, JSON.stringify(fmRes.value.data)); } catch (e) { void e; }
         }
       } catch (err) {
         console.warn('Failed to load universe cloud content:', err);
@@ -145,7 +145,7 @@ export function useUniverseData() {
     setRecordings((prev) => {
       const exists = prev.some((x) => x.id === item.id);
       const updated = exists ? prev.map((x) => (x.id === item.id ? item : x)) : [item, ...prev];
-      try { localStorage.setItem(STORAGE_KEYS.recordings, JSON.stringify(updated)); } catch {}
+      try { localStorage.setItem(STORAGE_KEYS.recordings, JSON.stringify(updated)); } catch (e) { void e; }
       return updated;
     });
 
@@ -161,7 +161,7 @@ export function useUniverseData() {
   const deleteRecording = useCallback(async (id: string) => {
     setRecordings((prev) => {
       const updated = prev.filter((x) => x.id !== id);
-      try { localStorage.setItem(STORAGE_KEYS.recordings, JSON.stringify(updated)); } catch {}
+      try { localStorage.setItem(STORAGE_KEYS.recordings, JSON.stringify(updated)); } catch (e) { void e; }
       return updated;
     });
 
@@ -178,7 +178,7 @@ export function useUniverseData() {
     setLetters((prev) => {
       const exists = prev.some((x) => x.id === item.id);
       const updated = exists ? prev.map((x) => (x.id === item.id ? item : x)) : [item, ...prev];
-      try { localStorage.setItem(STORAGE_KEYS.letters, JSON.stringify(updated)); } catch {}
+      try { localStorage.setItem(STORAGE_KEYS.letters, JSON.stringify(updated)); } catch (e) { void e; }
       return updated;
     });
 
@@ -194,7 +194,7 @@ export function useUniverseData() {
   const deleteLetter = useCallback(async (id: string) => {
     setLetters((prev) => {
       const updated = prev.filter((x) => x.id !== id);
-      try { localStorage.setItem(STORAGE_KEYS.letters, JSON.stringify(updated)); } catch {}
+      try { localStorage.setItem(STORAGE_KEYS.letters, JSON.stringify(updated)); } catch (e) { void e; }
       return updated;
     });
 
@@ -211,7 +211,7 @@ export function useUniverseData() {
     setDates((prev) => {
       const exists = prev.some((x) => x.id === item.id);
       const updated = exists ? prev.map((x) => (x.id === item.id ? item : x)) : [...prev, item];
-      try { localStorage.setItem(STORAGE_KEYS.dates, JSON.stringify(updated)); } catch {}
+      try { localStorage.setItem(STORAGE_KEYS.dates, JSON.stringify(updated)); } catch (e) { void e; }
       return updated;
     });
 
@@ -227,7 +227,7 @@ export function useUniverseData() {
   const deleteDate = useCallback(async (id: string) => {
     setDates((prev) => {
       const updated = prev.filter((x) => x.id !== id);
-      try { localStorage.setItem(STORAGE_KEYS.dates, JSON.stringify(updated)); } catch {}
+      try { localStorage.setItem(STORAGE_KEYS.dates, JSON.stringify(updated)); } catch (e) { void e; }
       return updated;
     });
 
@@ -244,7 +244,7 @@ export function useUniverseData() {
     setFlowers((prev) => {
       const exists = prev.some((x) => x.id === item.id);
       const updated = exists ? prev.map((x) => (x.id === item.id ? item : x)) : [...prev, item];
-      try { localStorage.setItem(STORAGE_KEYS.flowers, JSON.stringify(updated)); } catch {}
+      try { localStorage.setItem(STORAGE_KEYS.flowers, JSON.stringify(updated)); } catch (e) { void e; }
       return updated;
     });
 
@@ -260,7 +260,7 @@ export function useUniverseData() {
   const deleteFlower = useCallback(async (id: string) => {
     setFlowers((prev) => {
       const updated = prev.filter((x) => x.id !== id);
-      try { localStorage.setItem(STORAGE_KEYS.flowers, JSON.stringify(updated)); } catch {}
+      try { localStorage.setItem(STORAGE_KEYS.flowers, JSON.stringify(updated)); } catch (e) { void e; }
       return updated;
     });
 
@@ -277,7 +277,7 @@ export function useUniverseData() {
     setCinema((prev) => {
       const exists = prev.some((x) => x.id === item.id);
       const updated = exists ? prev.map((x) => (x.id === item.id ? item : x)) : [item, ...prev];
-      try { localStorage.setItem(STORAGE_KEYS.cinema, JSON.stringify(updated)); } catch {}
+      try { localStorage.setItem(STORAGE_KEYS.cinema, JSON.stringify(updated)); } catch (e) { void e; }
       return updated;
     });
 
@@ -293,7 +293,7 @@ export function useUniverseData() {
   const deleteCinemaItem = useCallback(async (id: string) => {
     setCinema((prev) => {
       const updated = prev.filter((x) => x.id !== id);
-      try { localStorage.setItem(STORAGE_KEYS.cinema, JSON.stringify(updated)); } catch {}
+      try { localStorage.setItem(STORAGE_KEYS.cinema, JSON.stringify(updated)); } catch (e) { void e; }
       return updated;
     });
 
@@ -310,7 +310,7 @@ export function useUniverseData() {
     setLittleThings((prev) => {
       const exists = prev.some((x) => x.id === item.id);
       const updated = exists ? prev.map((x) => (x.id === item.id ? item : x)) : [item, ...prev];
-      try { localStorage.setItem(STORAGE_KEYS.littleThings, JSON.stringify(updated)); } catch {}
+      try { localStorage.setItem(STORAGE_KEYS.littleThings, JSON.stringify(updated)); } catch (e) { void e; }
       return updated;
     });
 
@@ -326,7 +326,7 @@ export function useUniverseData() {
   const deleteLittleThing = useCallback(async (id: string) => {
     setLittleThings((prev) => {
       const updated = prev.filter((x) => x.id !== id);
-      try { localStorage.setItem(STORAGE_KEYS.littleThings, JSON.stringify(updated)); } catch {}
+      try { localStorage.setItem(STORAGE_KEYS.littleThings, JSON.stringify(updated)); } catch (e) { void e; }
       return updated;
     });
 
@@ -343,7 +343,7 @@ export function useUniverseData() {
     setFutureMuseum((prev) => {
       const exists = prev.some((x) => x.id === item.id);
       const updated = exists ? prev.map((x) => (x.id === item.id ? item : x)) : [item, ...prev];
-      try { localStorage.setItem(STORAGE_KEYS.futureMuseum, JSON.stringify(updated)); } catch {}
+      try { localStorage.setItem(STORAGE_KEYS.futureMuseum, JSON.stringify(updated)); } catch (e) { void e; }
       return updated;
     });
 
@@ -359,7 +359,7 @@ export function useUniverseData() {
   const deleteFutureMuseumItem = useCallback(async (id: string) => {
     setFutureMuseum((prev) => {
       const updated = prev.filter((x) => x.id !== id);
-      try { localStorage.setItem(STORAGE_KEYS.futureMuseum, JSON.stringify(updated)); } catch {}
+      try { localStorage.setItem(STORAGE_KEYS.futureMuseum, JSON.stringify(updated)); } catch (e) { void e; }
       return updated;
     });
 
